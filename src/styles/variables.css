@@ -1,0 +1,45 @@
+:root {
+  /*
+   * 统一色板：奶白底 + 鼠尾草强调 + 墨色字
+   * 全局只使用下列变量，避免左侧/右侧各一套色
+   */
+  --cream: #fef8ec;
+  --cream-muted: #f6f0e6;
+  --sage: #a0a98b;
+  --sage-deep: #8f9880;
+  --ink: #3a3d38;
+  --ink-muted: #757970;
+
+  --bg-app: var(--cream);
+  --bg-raised: var(--cream-muted);
+  --bg-hover: color-mix(in srgb, var(--ink) 5%, var(--cream));
+  --bg-selected: color-mix(in srgb, var(--sage) 22%, var(--cream));
+
+  --color-primary: var(--sage);
+  --color-primary-dark: var(--sage-deep);
+  --color-text: var(--ink);
+  --color-text-muted: var(--ink-muted);
+
+  --bg-primary: var(--bg-app);
+  --bg-secondary: var(--bg-raised);
+  --bg-active: var(--bg-selected);
+  --bg-active-strong: var(--bg-selected);
+
+  --divider-major: color-mix(in srgb, var(--ink) 8%, transparent);
+
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 12px;
+
+  --shadow-soft: 0 1px 8px color-mix(in srgb, var(--ink) 6%, transparent);
+  --shadow-medium: 0 6px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--sage) 40%, transparent);
+
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --sidebar-width: 260px;
+  --header-height: 56px;
+}

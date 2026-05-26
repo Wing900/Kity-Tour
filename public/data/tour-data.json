@@ -1,0 +1,255 @@
+{
+  "folders": [
+    {
+      "id": "f-1",
+      "name": "快速上手",
+      "files": [
+        {
+          "id": "l-1",
+          "name": "1. 欢迎来到 PlotKityCat",
+          "slides": [
+            {
+              "id": "s-1779804628867",
+              "elements": [
+                {
+                  "id": "nqCS_1VGXFtOox88JwE59",
+                  "type": "rectangle",
+                  "x": 327.1875,
+                  "y": 171.4921875,
+                  "width": 149.87890625,
+                  "height": 60,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a0",
+                  "roundness": {
+                    "type": 3
+                  },
+                  "seed": 1022869272,
+                  "version": 78,
+                  "versionNonce": 151559960,
+                  "isDeleted": false,
+                  "boundElements": [
+                    {
+                      "type": "text",
+                      "id": "Sz4z16BDcLu1HDQPeGJtV"
+                    }
+                  ],
+                  "updated": 1779808810214,
+                  "link": "https://baidu.com",
+                  "locked": false
+                },
+                {
+                  "id": "Sz4z16BDcLu1HDQPeGJtV",
+                  "type": "text",
+                  "x": 342.126953125,
+                  "y": 176.4921875,
+                  "width": 120,
+                  "height": 50,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a0V",
+                  "roundness": null,
+                  "seed": 1081250408,
+                  "version": 38,
+                  "versionNonce": 173969512,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1779808811530,
+                  "link": null,
+                  "locked": false,
+                  "text": "点击右上角即\n可下载",
+                  "fontSize": 20,
+                  "fontFamily": 5,
+                  "textAlign": "center",
+                  "verticalAlign": "middle",
+                  "containerId": "nqCS_1VGXFtOox88JwE59",
+                  "originalText": "点击右上角即可下载",
+                  "autoResize": true,
+                  "lineHeight": 1.25
+                }
+              ],
+              "appState": {
+                "viewBackgroundColor": "#fef8ec",
+                "zoom": {
+                  "value": 1
+                },
+                "scrollX": 0,
+                "scrollY": 0
+              }
+            },
+            {
+              "id": "s-1-2",
+              "elements": [],
+              "appState": {
+                "viewBackgroundColor": "#fef8ec"
+              }
+            },
+            {
+              "id": "s-1-1",
+              "elements": [
+                {
+                  "id": "k8xQ5hni5_s4x6m2ciMT6",
+                  "type": "text",
+                  "x": 394.62109375,
+                  "y": 469.5703125,
+                  "width": 80,
+                  "height": 25,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 2,
+                  "strokeStyle": "solid",
+                  "roughness": 1,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a1",
+                  "roundness": null,
+                  "seed": 1984342939,
+                  "version": 26,
+                  "versionNonce": 749166555,
+                  "isDeleted": false,
+                  "boundElements": [],
+                  "updated": 1779804421543,
+                  "link": null,
+                  "locked": false,
+                  "text": "牛！！！",
+                  "fontSize": 20,
+                  "fontFamily": 5,
+                  "textAlign": "left",
+                  "verticalAlign": "top",
+                  "containerId": null,
+                  "originalText": "牛！！！",
+                  "autoResize": true,
+                  "lineHeight": 1.25
+                },
+                {
+                  "id": "D58YfQqBC9MDJCJ9I-842",
+                  "type": "rectangle",
+                  "x": 351.625,
+                  "y": 214.87109375,
+                  "width": 222.91796875,
+                  "height": 192.88671875,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a2",
+                  "roundness": {
+                    "type": 3
+                  },
+                  "seed": 1133438261,
+                  "version": 125,
+                  "versionNonce": 1418110197,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1779804597809,
+                  "link": null,
+                  "locked": false
+                },
+                {
+                  "id": "fdhubmnap6qZIQz_TpLl5",
+                  "type": "text",
+                  "x": 455.16015625,
+                  "y": 159.2890625,
+                  "width": 179.37997436523438,
+                  "height": 25,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a3",
+                  "roundness": null,
+                  "seed": 400131829,
+                  "version": 20,
+                  "versionNonce": 1549631003,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1779804613126,
+                  "link": null,
+                  "locked": false,
+                  "text": "hhhhhhh哈哈哈哈哈",
+                  "fontSize": 20,
+                  "fontFamily": 5,
+                  "textAlign": "left",
+                  "verticalAlign": "top",
+                  "containerId": null,
+                  "originalText": "hhhhhhh哈哈哈哈哈",
+                  "autoResize": true,
+                  "lineHeight": 1.25
+                }
+              ],
+              "appState": {
+                "viewBackgroundColor": "#fef8ec",
+                "zoom": {
+                  "value": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "l-2",
+          "name": "2. 界面功能分区介绍",
+          "slides": [
+            {
+              "id": "s-2-1",
+              "elements": [],
+              "appState": {
+                "viewBackgroundColor": "#fef8ec"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f-2",
+      "name": "教程案例",
+      "files": [
+        {
+          "id": "l-3",
+          "name": "如何画一只小花猫",
+          "slides": [
+            {
+              "id": "s-3-1",
+              "elements": [],
+              "appState": {
+                "viewBackgroundColor": "#fef8ec"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
