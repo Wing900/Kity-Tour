@@ -2,13 +2,15 @@ import { useEffect } from 'react'
 
 const REQUIRED_COUNT = 8
 /** 相邻两次按键允许的最大间隔（毫秒） */
-const MAX_INTERVAL_MS = 400
+const MAX_INTERVAL_MS = 500
 
+/** 仅排除真正的表单输入；画布 contenteditable 仍计入快捷键 */
 function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable) return true
-  const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  )
 }
 
 /**
@@ -46,7 +48,7 @@ export function useAdminUnlockSequence(
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown, true)
+    return () => document.removeEventListener('keydown', handleKeyDown, true)
   }, [onTrigger, enabled])
 }
