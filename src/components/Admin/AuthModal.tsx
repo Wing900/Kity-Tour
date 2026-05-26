@@ -5,6 +5,7 @@ import { Lock } from 'lucide-react'
 
 interface AuthModalProps {
   isOpen: boolean
+  adminLoginEnabled: boolean
   onClose: () => void
   onSuccess: () => void
   onFail: (msg: string) => void
@@ -13,6 +14,7 @@ interface AuthModalProps {
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
+  adminLoginEnabled,
   onClose,
   onSuccess,
   onFail,
@@ -29,7 +31,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setPassword('')
       onSuccess()
     } else {
-      onFail('密码错误，请重试。')
+      onFail(
+        adminLoginEnabled
+          ? '密码错误，请重试。'
+          : '管理员登录未配置，请在构建时设置 VITE_ADMIN_PASSWORD。'
+      )
     }
   }
 

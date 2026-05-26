@@ -24,6 +24,8 @@ interface TourContextType {
   activeFileId: string | null
   currentSlideIndex: number
   isAdmin: boolean
+  /** 构建时是否配置了 VITE_ADMIN_PASSWORD */
+  adminLoginEnabled: boolean
   expandedFolders: string[]
   isLoading: boolean
   
@@ -62,7 +64,9 @@ interface TourContextType {
 
 const TourContext = createContext<TourContextType | undefined>(undefined)
 
-const ADMIN_PASSWORD = 'kity' // 默认管理员密码
+/** 由 .env 或 CI 密钥 VITE_ADMIN_PASSWORD 在构建时注入 */
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? ''
+const ADMIN_LOGIN_ENABLED = ADMIN_PASSWORD.length > 0
 
 const EMOJI_REGEX = /[\p{Extended_Pictographic}\p{Emoji_Presentation}]/gu
 
@@ -160,6 +164,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 管理员验证
   const loginAdmin = (password: string): boolean => {
+    if (!ADMIN_LOGIN_ENABLED) return false
     if (password === ADMIN_PASSWORD) {
       setIsAdmin(true)
       return true
@@ -502,6 +507,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       activeFileId,
       currentSlideIndex,
       isAdmin,
+      adminLoginEnabled: ADMIN_LOGIN_ENABLED,
       expandedFolders,
       isLoading,
       setActiveFolderId,

@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { useTour } from '../../context/TourContext'
+import { useAdminUnlockSequence } from '../../hooks/useAdminUnlockSequence'
 import { Button } from '../UI/Button'
 import { AuthModal } from '../Admin/AuthModal'
 import { Toast } from '../UI/Toast'
@@ -7,7 +8,8 @@ import { Shield, LogOut, Download, Upload } from 'lucide-react'
 
 export const Header: React.FC = () => {
   const { 
-    isAdmin, 
+    isAdmin,
+    adminLoginEnabled,
     loginAdmin, 
     logoutAdmin, 
     exportBackup, 
@@ -18,6 +20,14 @@ export const Header: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const openAuthModal = useCallback(() => {
+    if (!isAdmin && adminLoginEnabled) {
+      setIsAuthOpen(true)
+    }
+  }, [isAdmin, adminLoginEnabled])
+
+  useAdminUnlockSequence(openAuthModal, adminLoginEnabled && !isAdmin)
 
   const handleLoginSuccess = () => {
     setIsAuthOpen(false)
@@ -73,7 +83,6 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* 右侧：管理员控制台 */}
       <div className="header-actions">
         {isAdmin ? (
           <>
@@ -122,22 +131,13 @@ export const Header: React.FC = () => {
               <span>退出</span>
             </Button>
           </>
-        ) : (
-          <Button 
-            variant="primary" 
-            size="sm" 
-            onClick={() => setIsAuthOpen(true)}
-            className="flex items-center gap-1.5"
-          >
-            <Shield className="w-4 h-4" />
-            <span>管理员入口</span>
-          </Button>
-        )}
+        ) : null}
       </div>
 
       {/* 登录弹窗 */}
       <AuthModal 
         isOpen={isAuthOpen}
+        adminLoginEnabled={adminLoginEnabled}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleLoginSuccess}
         onFail={handleLoginFail}

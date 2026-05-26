@@ -131,7 +131,7 @@ export const SlideCanvas: React.FC = () => {
         <p className="empty-state-desc">
           {isAdmin
             ? '请在左侧侧边栏中新建文件夹和教程文件，开始绘制教程。'
-            : '请点击左侧目录树中的文件开始学习；编辑需先解锁管理员权限。'}
+            : '请点击左侧目录树中的文件开始学习。'}
         </p>
       </div>
     )

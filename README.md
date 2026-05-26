@@ -13,18 +13,20 @@
 
 ```bash
 npm install
+cp .env.example .env
+# 编辑 .env，设置 VITE_ADMIN_PASSWORD=你的密码
 npm run dev
 ```
 
-浏览器打开终端提示的地址（一般为 `http://localhost:5173`）。
+浏览器打开终端提示的地址（一般为 `http://localhost:5173`）。未配置 `VITE_ADMIN_PASSWORD` 时无法进入编辑模式。
 
 ## 如何编辑画布
 
 默认是**只读阅读模式**（可平移、缩放，不能画图）。要编辑请：
 
-1. 点击右上角 **管理员入口**
-2. 输入管理员密码（由部署方配置，不在页面上展示）
-3. 解锁后 Excalidraw 工具栏可用；每页独立保存，切换页面前会自动写入（开发环境写入 JSON）
+1. 在页面空白处**连续快速按 `k` 八次**（不要在输入框内按），弹出登录框
+2. 输入管理员密码（由部署方通过 `VITE_ADMIN_PASSWORD` 配置，页面上无入口按钮）
+3. 解锁后顶栏会出现备份/退出等管理员工具；Excalidraw 工具栏可用，每页独立保存，切换页面前会自动写入（开发环境写入 JSON）
 
 ## 如何添加可点击链接
 
@@ -68,7 +70,7 @@ npm run preview
 ### 部署前检查
 
 1. **教程内容**：确认 `public/data/tour-data.json` 已是最终版（构建时会复制进 `dist/data/`）
-2. **管理员密码**：在 `src/context/TourContext.tsx` 里修改 `ADMIN_PASSWORD` 后重新构建（密码会打进前端包，部署前务必改掉默认密码）
+2. **管理员密码**：通过环境变量 `VITE_ADMIN_PASSWORD` 在**构建时**注入（见下方「管理员密码」），勿写进源码或提交到 Git
 3. **线上无法自动写盘**：开发时的 `/api/save` 仅在 `npm run dev` 有效；线上改动画布后请用「导出备份」→ 更新 JSON → 重新构建部署，或仅在本机 dev 编辑后部署
 
 ### 方式 A：GitHub Pages（本仓库推荐）
@@ -76,8 +78,9 @@ npm run preview
 仓库：[github.com/Wing900/Kity-Tour](https://github.com/Wing900/Kity-Tour)
 
 1. 推送代码到 `main` 分支（已含 `.github/workflows/deploy-pages.yml`）
-2. 打开仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**
-3. 等 Actions 跑完，访问：**https://wing900.github.io/Kity-Tour/**
+2. 仓库 **Settings → Secrets and variables → Actions** 新建 Secret：`VITE_ADMIN_PASSWORD`（你的管理员密码）
+3. 打开 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**
+4. 等 Actions 跑完，访问：**https://wing900.github.io/Kity-Tour/**
 
 之后每次 push `main` 会自动重新部署。本地 `npm run dev` 不受影响（仍用根路径 `/`）。
 
@@ -131,6 +134,20 @@ server {
 npm run build
 # 将 dist/ 内所有文件上传到对象存储 + CDN，或任意静态空间
 ```
+
+### 管理员密码与安全
+
+| 场景 | 做法 |
+|------|------|
+| 本地开发 | 项目根目录 `.env` 中设置 `VITE_ADMIN_PASSWORD`（参考 `.env.example`） |
+| GitHub Pages | 仓库 **Settings → Secrets → Actions** 添加 `VITE_ADMIN_PASSWORD`，推送后 Actions 构建时注入 |
+| Vercel / Netlify 等 | 在托管平台的 **Environment variables** 里添加同名变量，再触发构建 |
+
+说明：
+
+- Vite 只会把以 `VITE_` 开头的变量打进前端包，密码**不会出现在 Git 源码**里，但仍会存在于构建后的 JS 中；熟悉 DevTools 的人仍可能看到。这只是「别明文写进仓库」，不是服务端鉴权。
+- 未设置 `VITE_ADMIN_PASSWORD` 时，站点为纯阅读模式，快捷键也不会弹出登录。
+- 若需要真正的访问控制，应增加后端校验或私有部署，而不是仅依赖前端密码。
 
 ### 更新已上线教程
 
