@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react'
 import { useTour } from '../../context/TourContext'
-import { useAdminSubtitleUnlock } from '../../hooks/useAdminSubtitleUnlock'
+import { useAdminLogoUnlock } from '../../hooks/useAdminLogoUnlock'
 import { Button } from '../UI/Button'
 import { AuthModal } from '../Admin/AuthModal'
 import { Toast } from '../UI/Toast'
@@ -27,7 +27,7 @@ export const Header: React.FC = () => {
     }
   }, [isAdmin, adminLoginEnabled])
 
-  const handleSubtitleClick = useAdminSubtitleUnlock(
+  const handleLogoClick = useAdminLogoUnlock(
     openAuthModal,
     adminLoginEnabled && !isAdmin
   )
@@ -79,16 +79,12 @@ export const Header: React.FC = () => {
           src="https://raw.githubusercontent.com/Wing900/PlotKityCat/master/logo.png" 
           alt="PlotKityCat Logo" 
           className="header-logo"
+          onClick={handleLogoClick}
+          role="presentation"
         />
         <div className="header-title-group">
           <h1 className="header-title">PlotKityCat</h1>
-          <span
-            className="header-subtitle"
-            onClick={handleSubtitleClick}
-            role="presentation"
-          >
-            官方教程网页 • Kity-Tour
-          </span>
+          <span className="header-subtitle">官方教程网页 • Kity-Tour</span>
         </div>
       </div>
 

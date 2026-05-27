@@ -76,8 +76,6 @@ body {
   color: var(--color-text-muted);
   line-height: 1.2;
   margin-top: 2px;
-  cursor: default;
-  user-select: none;
 }
 
 .header-actions {
