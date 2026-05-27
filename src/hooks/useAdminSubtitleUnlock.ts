@@ -2,8 +2,8 @@ import { useCallback, useRef } from 'react'
 
 const REQUIRED_CLICKS = 20
 
-/** 连续点击左上角 Logo 指定次数后触发（不要求快速） */
-export function useAdminLogoUnlock(
+/** 连续点击顶栏简介区域指定次数后触发（不要求快速） */
+export function useAdminSubtitleUnlock(
   onTrigger: () => void,
   enabled: boolean
 ): () => void {
