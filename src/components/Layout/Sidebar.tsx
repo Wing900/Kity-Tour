@@ -156,7 +156,7 @@ export const Sidebar: React.FC = () => {
           onClick={handleLogoClick}
           role="presentation"
         />
-        <span className="sidebar-brand-title">PlotKityCat 介绍</span>
+        <span className="sidebar-brand-title">PlotKityCat</span>
       </div>
 
       <div className="sidebar-header">
