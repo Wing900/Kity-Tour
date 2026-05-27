@@ -4,7 +4,7 @@ import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
 import { Shield, LogOut, Download, Upload } from 'lucide-react'
 
-/** 仅管理员：主区上方工具条（Logo 在侧栏） */
+/** 编辑模式工具条（Logo 在侧栏进入） */
 export const Header: React.FC = () => {
   const { isAdmin, logoutAdmin, exportBackup, importBackup } = useTour()
 
@@ -60,7 +60,7 @@ export const Header: React.FC = () => {
         <div className="main-admin-strip-inner">
           <div className="admin-badge">
             <Shield className="admin-badge-icon" />
-            <span>管理员</span>
+            <span>编辑模式</span>
           </div>
 
           <Button

@@ -24,8 +24,6 @@ interface TourContextType {
   activeFileId: string | null
   currentSlideIndex: number
   isAdmin: boolean
-  /** 构建时是否配置了 VITE_ADMIN_PASSWORD */
-  adminLoginEnabled: boolean
   expandedFolders: string[]
   isLoading: boolean
   
@@ -35,8 +33,8 @@ interface TourContextType {
   setCurrentSlideIndex: (index: number) => void
   toggleFolder: (folderId: string) => void
   
-  // 管理员动作
-  loginAdmin: (password: string) => boolean
+  // 编辑模式动作
+  loginAdmin: () => boolean
   logoutAdmin: () => void
   
   // 目录与文件管理
@@ -64,11 +62,8 @@ interface TourContextType {
 
 const TourContext = createContext<TourContextType | undefined>(undefined)
 
-/** 由 .env 或 CI 密钥 VITE_ADMIN_PASSWORD 在构建时注入 */
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? ''
-const ADMIN_LOGIN_ENABLED = ADMIN_PASSWORD.length > 0
-
 const EMOJI_REGEX = /[\p{Extended_Pictographic}\p{Emoji_Presentation}]/gu
+const DATA_URL = `${import.meta.env.BASE_URL}data/tour-data.json`
 
 const stripEmojis = (text: string): string =>
   text.replace(EMOJI_REGEX, '').replace(/\s{2,}/g, ' ').trim()
@@ -92,12 +87,12 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [expandedFolders, setExpandedFolders] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  // 1. 初始化时从 /data/tour-data.json 获取数据
+  // 1. 初始化时从静态 JSON 获取数据，兼容子路径部署
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('/data/tour-data.json')
+        const response = await fetch(DATA_URL)
         if (response.ok) {
           const data = await response.json()
           if (data && data.folders) {
@@ -162,14 +157,10 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return folder.files.find(f => f.id === activeFileId) || null
   }
 
-  // 管理员验证
-  const loginAdmin = (password: string): boolean => {
-    if (!ADMIN_LOGIN_ENABLED) return false
-    if (password === ADMIN_PASSWORD) {
-      setIsAdmin(true)
-      return true
-    }
-    return false
+  // 编辑模式切换
+  const loginAdmin = (): boolean => {
+    setIsAdmin(true)
+    return true
   }
 
   const logoutAdmin = () => {
@@ -507,7 +498,6 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       activeFileId,
       currentSlideIndex,
       isAdmin,
-      adminLoginEnabled: ADMIN_LOGIN_ENABLED,
       expandedFolders,
       isLoading,
       setActiveFolderId,

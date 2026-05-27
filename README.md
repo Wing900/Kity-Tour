@@ -8,7 +8,7 @@
 
 - 左侧目录树：文件夹 / 教程文件浏览
 - 中间画布：Excalidraw 手绘区（支持翻页、多幻灯片）
-- 顶部栏：管理员解锁、JSON 备份导入导出
+- 顶部栏：编辑模式工具、JSON 备份导入导出
 - 开发模式：画布修改自动写入 `public/data/tour-data.json`
 - 标签页与顶栏 Logo 使用仓库内 `public/logo.png`（与 PlotKityCat 官方图一致，便于离线/GitHub Pages）
 
@@ -16,29 +16,27 @@
 
 ```bash
 npm install
-cp .env.example .env
-# 编辑 .env，设置 VITE_ADMIN_PASSWORD=你的密码
 npm run dev
 ```
 
-浏览器打开终端提示的地址（一般为 `http://localhost:5173`）。未配置 `VITE_ADMIN_PASSWORD` 时无法进入编辑模式。
+浏览器打开终端提示的地址（一般为 `http://localhost:5173`）。
 
 ## 如何编辑画布
 
 默认是**只读阅读模式**（可平移、缩放，不能画图）。要编辑请：
 
-1. **连续点击左上角 Logo 20 次**（不要求快速），弹出登录框
-2. 输入管理员密码（由部署方通过 `VITE_ADMIN_PASSWORD` 配置，页面上无入口按钮）
-3. 解锁后顶栏会出现备份/退出等管理员工具；Excalidraw 工具栏可用，每页独立保存，切换页面前会自动写入（开发环境写入 JSON）
+1. 点击左上角 Logo，进入编辑模式
+2. 顶栏会出现导入导出、退出等工具；Excalidraw 工具栏可用
+3. 每页独立保存，切换页面前会自动写入；开发环境会自动写入 `public/data/tour-data.json`
 
 ## 如何添加可点击链接
 
 教程画布基于 Excalidraw，**不能只写一段看起来像网址的文字**就自动可点，需要给图形绑定链接：
 
-1. 解锁管理员后，用选择工具点选**矩形、文字**等图形
+1. 进入编辑模式后，用选择工具点选**矩形、文字**等图形
 2. 按 **Ctrl+K**（Mac：**⌘+K**），或右键菜单中的链接项
 3. 输入完整网址（如 `https://github.com/Wing900/PlotKityCat`），确认保存
-4. 图形会出现**链接角标**；读者（未解锁管理员）点击该角标即可在新标签页打开
+4. 图形会出现**链接角标**；读者在阅读模式点击该角标即可在新标签页打开
 
 链接会随画布一起写入 `tour-data.json` 的 `elements[].link` 字段。
 
@@ -73,17 +71,15 @@ npm run preview
 ### 部署前检查
 
 1. **教程内容**：确认 `public/data/tour-data.json` 已是最终版（构建时会复制进 `dist/data/`）
-2. **管理员密码**：通过环境变量 `VITE_ADMIN_PASSWORD` 在**构建时**注入（见下方「管理员密码」），勿写进源码或提交到 Git
-3. **线上无法自动写盘**：开发时的 `/api/save` 仅在 `npm run dev` 有效；线上改动画布后请用「导出备份」→ 更新 JSON → 重新构建部署，或仅在本机 dev 编辑后部署
+2. **线上无法自动写盘**：开发时的 `/api/save` 仅在 `npm run dev` 有效；线上改动画布后请用「导出备份」→ 更新 JSON → 重新构建部署，或仅在本机 dev 编辑后部署
 
 ### 方式 A：GitHub Pages（本仓库推荐）
 
 仓库：[github.com/Wing900/Kity-Tour](https://github.com/Wing900/Kity-Tour)
 
 1. 推送代码到 `main` 分支（已含 `.github/workflows/deploy-pages.yml`）
-2. 仓库 **Settings → Secrets and variables → Actions** 新建 Secret：`VITE_ADMIN_PASSWORD`（你的管理员密码）
-3. 打开 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**
-4. 等 Actions 跑完，访问：**https://wing900.github.io/Kity-Tour/**
+2. 打开 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**
+3. 等 Actions 跑完，访问：**https://wing900.github.io/Kity-Tour/**
 
 之后每次 push `main` 会自动重新部署。本地 `npm run dev` 不受影响（仍用根路径 `/`）。
 
@@ -138,19 +134,12 @@ npm run build
 # 将 dist/ 内所有文件上传到对象存储 + CDN，或任意静态空间
 ```
 
-### 管理员密码与安全
+### 编辑模式说明
 
-| 场景 | 做法 |
-|------|------|
-| 本地开发 | 项目根目录 `.env` 中设置 `VITE_ADMIN_PASSWORD`（参考 `.env.example`） |
-| GitHub Pages | 仓库 **Settings → Secrets → Actions** 添加 `VITE_ADMIN_PASSWORD`，推送后 Actions 构建时注入 |
-| Vercel / Netlify 等 | 在托管平台的 **Environment variables** 里添加同名变量，再触发构建 |
-
-说明：
-
-- Vite 只会把以 `VITE_` 开头的变量打进前端包，密码**不会出现在 Git 源码**里，但仍会存在于构建后的 JS 中；熟悉 DevTools 的人仍可能看到。这只是「别明文写进仓库」，不是服务端鉴权。
-- 未设置 `VITE_ADMIN_PASSWORD` 时，站点为纯阅读模式，点击 Logo 也不会弹出登录。
-- 若需要真正的访问控制，应增加后端校验或私有部署，而不是仅依赖前端密码。
+- 点击左上角 Logo 即可进入编辑模式。
+- 编辑模式只影响当前浏览器会话；刷新后会回到阅读模式。
+- 本地 `npm run dev` 下会自动写回 `public/data/tour-data.json`。
+- 已部署的静态站不会自动把改动写回服务器文件；如需长期保留，请导出 JSON 后更新仓库并重新部署。
 
 ### 更新已上线教程
 

@@ -1,10 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
-import { AuthModal } from '../Admin/AuthModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { useAdminLogoUnlock } from '../../hooks/useAdminLogoUnlock'
 import { Plus, Edit3, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
@@ -44,8 +42,7 @@ export const Sidebar: React.FC = () => {
     renameFile,
     deleteFile,
     moveFile,
-    loginAdmin,
-    adminLoginEnabled
+    loginAdmin
   } = useTour()
 
   // 弹窗与 Toast 状态
@@ -62,7 +59,6 @@ export const Sidebar: React.FC = () => {
   })
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-  const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const searchTrim = searchQuery.trim()
@@ -71,13 +67,11 @@ export const Sidebar: React.FC = () => {
     [folders, searchQuery]
   )
 
-  const openAuthModal = useCallback(() => {
-    if (!isAdmin && adminLoginEnabled) {
-      setIsAuthOpen(true)
-    }
-  }, [isAdmin, adminLoginEnabled])
-
-  const handleLogoClick = useAdminLogoUnlock(openAuthModal, adminLoginEnabled && !isAdmin)
+  const handleLogoClick = () => {
+    if (isAdmin) return
+    loginAdmin()
+    setToast({ message: '已进入编辑模式。开发环境会自动保存到本地 JSON。', type: 'success' })
+  }
 
   // 新建文件夹
   const handleCreateFolder = () => {
@@ -327,18 +321,6 @@ export const Sidebar: React.FC = () => {
           })
         )}
       </div>
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        adminLoginEnabled={adminLoginEnabled}
-        onClose={() => setIsAuthOpen(false)}
-        onSuccess={() => {
-          setIsAuthOpen(false)
-          setToast({ message: '管理员解锁成功，可以编辑画布了。', type: 'success' })
-        }}
-        onFail={(msg) => setToast({ message: msg, type: 'error' })}
-        loginAdmin={loginAdmin}
-      />
 
       {/* 防误删二次确认弹窗 */}
       <SafeDeleteModal 
