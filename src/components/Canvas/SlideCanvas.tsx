@@ -8,7 +8,7 @@ import '@excalidraw/excalidraw/index.css'
 
 const buildAppState = (slide: Slide | undefined, isAdmin: boolean) => ({
   ...(slide?.appState ?? {}),
-  viewBackgroundColor: '#fef8ec',
+  viewBackgroundColor: '#fdf9f3',
   theme: 'light' as const,
   viewModeEnabled: !isAdmin,
   currentItemStrokeWidth: 1,

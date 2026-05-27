@@ -1,19 +1,19 @@
 :root {
   /*
-   * 统一色板：奶白底 + 鼠尾草强调 + 墨色字
-   * 全局只使用下列变量，避免左侧/右侧各一套色
+   * 双区平涂：仅侧栏色 + 画布色 + 极淡分界，其余用 hover/选中微变
    */
-  --cream: #fef8ec;
-  --cream-muted: #f6f0e6;
+  --cream: #fdf9f3;
+  --cream-sidebar: #f8f4ee;
+  --cream-muted: #f1ece6;
   --sage: #a0a98b;
   --sage-deep: #8f9880;
   --ink: #3a3d38;
   --ink-muted: #757970;
 
   --bg-app: var(--cream);
-  --bg-raised: var(--cream-muted);
-  --bg-hover: color-mix(in srgb, var(--ink) 5%, var(--cream));
-  --bg-selected: color-mix(in srgb, var(--sage) 22%, var(--cream));
+  --bg-raised: var(--cream-sidebar);
+  --bg-hover: color-mix(in srgb, var(--ink) 4.5%, var(--cream-sidebar));
+  --bg-selected: color-mix(in srgb, var(--sage) 18%, var(--cream));
 
   --color-primary: var(--sage);
   --color-primary-dark: var(--sage-deep);
@@ -25,21 +25,31 @@
   --bg-active: var(--bg-selected);
   --bg-active-strong: var(--bg-selected);
 
-  --divider-major: color-mix(in srgb, var(--ink) 8%, transparent);
-
+  /* 圆角保留给按钮/弹窗；主布局为平涂 */
   --border-radius-sm: 6px;
   --border-radius-md: 10px;
   --border-radius-lg: 12px;
 
-  --shadow-soft: 0 1px 8px color-mix(in srgb, var(--ink) 6%, transparent);
-  --shadow-medium: 0 6px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+  --shadow-soft: none;
+  --shadow-medium: none;
   --focus-ring: 0 0 0 2px color-mix(in srgb, var(--sage) 40%, transparent);
+
+  /** 左右分栏 / 侧栏内分组：极淡 1px */
+  --divider-faint: color-mix(in srgb, var(--ink) 2.2%, transparent);
 
   --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
 
-  --sidebar-width: 260px;
+  /* 约为原 380px 的 90% */
+  --sidebar-width: 342px;
   --header-height: 56px;
+
+  /* 侧栏字号层级：品牌 > 搜索框 > 文件夹（明显大于文件）> 文件 */
+  --sidebar-brand-logo-size: 44px;
+  --sidebar-brand-title-size: 26px;
+  --sidebar-section-title-size: 20px;
+  --sidebar-folder-size: 18px;
+  --sidebar-file-size: 14px;
 }

@@ -1,25 +1,35 @@
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
+import { AuthModal } from '../Admin/AuthModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { 
-  Folder as FolderIcon, 
-  FolderOpen, 
-  FileText, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  ChevronUp, 
-  ChevronDown,
-  BookOpen,
-  Inbox
-} from 'lucide-react'
+import { useAdminLogoUnlock } from '../../hooks/useAdminLogoUnlock'
+import { Plus, Edit3, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+
+type FilteredFolder = { folder: Folder; files: FileItem[] }
+
+function filterFoldersByQuery(folders: Folder[], query: string): FilteredFolder[] {
+  const q = query.trim().toLowerCase()
+  if (!q) {
+    return folders.map((folder) => ({ folder, files: folder.files }))
+  }
+  const out: FilteredFolder[] = []
+  for (const folder of folders) {
+    const folderMatch = folder.name.toLowerCase().includes(q)
+    const matchedFiles = folder.files.filter((f) => f.name.toLowerCase().includes(q))
+    if (folderMatch) {
+      out.push({ folder, files: folder.files })
+    } else if (matchedFiles.length > 0) {
+      out.push({ folder, files: matchedFiles })
+    }
+  }
+  return out
+}
 
 export const Sidebar: React.FC = () => {
   const {
     folders,
-    activeFolderId,
     activeFileId,
     expandedFolders,
     isAdmin,
@@ -33,7 +43,9 @@ export const Sidebar: React.FC = () => {
     addFile,
     renameFile,
     deleteFile,
-    moveFile
+    moveFile,
+    loginAdmin,
+    adminLoginEnabled
   } = useTour()
 
   // 弹窗与 Toast 状态
@@ -49,14 +61,30 @@ export const Sidebar: React.FC = () => {
     onConfirm: () => {}
   })
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const searchTrim = searchQuery.trim()
+  const filteredFolders = useMemo(
+    () => filterFoldersByQuery(folders, searchQuery),
+    [folders, searchQuery]
+  )
+
+  const openAuthModal = useCallback(() => {
+    if (!isAdmin && adminLoginEnabled) {
+      setIsAuthOpen(true)
+    }
+  }, [isAdmin, adminLoginEnabled])
+
+  const handleLogoClick = useAdminLogoUnlock(openAuthModal, adminLoginEnabled && !isAdmin)
 
   // 新建文件夹
   const handleCreateFolder = () => {
     const name = prompt('请输入新文件夹名称:', '新建文件夹')
     if (name && name.trim()) {
       addFolder(name.trim())
-      setToastMessage('文件夹创建成功！')
+      setToast({ message: '文件夹创建成功！', type: 'success' })
     }
   }
 
@@ -66,7 +94,7 @@ export const Sidebar: React.FC = () => {
     const name = prompt(`请输入文件夹新的名称 [${folder.name}]:`, folder.name)
     if (name && name.trim() && name.trim() !== folder.name) {
       renameFolder(folder.id, name.trim())
-      setToastMessage('文件夹重命名成功！')
+      setToast({ message: '文件夹重命名成功！', type: 'success' })
     }
   }
 
@@ -79,7 +107,7 @@ export const Sidebar: React.FC = () => {
       itemType: '文件夹',
       onConfirm: () => {
         deleteFolder(folder.id)
-        setToastMessage('文件夹已成功删除！')
+        setToast({ message: '文件夹已成功删除！', type: 'success' })
       }
     })
   }
@@ -90,7 +118,7 @@ export const Sidebar: React.FC = () => {
     const name = prompt('请输入新教程文件名称:', '新建教程文件')
     if (name && name.trim()) {
       addFile(folderId, name.trim())
-      setToastMessage('教程文件创建成功！')
+      setToast({ message: '教程文件创建成功！', type: 'success' })
     }
   }
 
@@ -100,7 +128,7 @@ export const Sidebar: React.FC = () => {
     const name = prompt(`请输入文件新的名称 [${file.name}]:`, file.name)
     if (name && name.trim() && name.trim() !== file.name) {
       renameFile(folderId, file.id, name.trim())
-      setToastMessage('文件重命名成功！')
+      setToast({ message: '文件重命名成功！', type: 'success' })
     }
   }
 
@@ -113,26 +141,40 @@ export const Sidebar: React.FC = () => {
       itemType: '文件',
       onConfirm: () => {
         deleteFile(folderId, file.id)
-        setToastMessage('文件已成功删除！')
+        setToast({ message: '文件已成功删除！', type: 'success' })
       }
     })
   }
 
   return (
     <aside className="sidebar">
-      {/* 侧边栏页眉 */}
+      <div className="sidebar-brand">
+        <img
+          src={`${import.meta.env.BASE_URL}logo.png`}
+          alt=""
+          className="sidebar-brand-logo"
+          onClick={handleLogoClick}
+          role="presentation"
+        />
+        <span className="sidebar-brand-title">PlotKityCat 介绍</span>
+      </div>
+
       <div className="sidebar-header">
-        <span className="sidebar-header-title">
-          <BookOpen className="sidebar-header-icon" aria-hidden />
-          教程目录
-        </span>
+        <input
+          type="search"
+          className="sidebar-search-input"
+          placeholder="搜索名称…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="搜索名称"
+        />
         {isAdmin && (
-          <Button 
-            variant="primary" 
-            size="sm" 
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleCreateFolder}
             title="新增文件夹"
-            className="p-1"
+            className="p-1 flex-shrink-0"
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -143,25 +185,28 @@ export const Sidebar: React.FC = () => {
       <div className="sidebar-content">
         {folders.length === 0 ? (
           <div className="sidebar-empty-hint">
-            <Inbox className="sidebar-empty-icon" aria-hidden />
             <span>目录空空如也</span>
           </div>
+        ) : filteredFolders.length === 0 ? (
+          <div className="sidebar-empty-hint">
+            <span>没有匹配项</span>
+          </div>
         ) : (
-          folders.map((folder, folderIdx) => {
+          filteredFolders.map(({ folder, files: visibleFiles }) => {
             const isExpanded = expandedFolders.includes(folder.id)
+            const showChildren = isExpanded || searchTrim.length > 0
+            const folderIdx = folders.findIndex((f) => f.id === folder.id)
             return (
               <div key={folder.id} className="folder-card">
                 {/* 文件夹头部 */}
                 <div
                   onClick={() => toggleFolder(folder.id)}
-                  className={`folder-header ${activeFolderId === folder.id ? 'active' : ''}`}
+                  className="folder-header"
                 >
                   <div className="folder-title-area">
-                    {isExpanded ? (
-                      <FolderOpen className="folder-icon" />
-                    ) : (
-                      <FolderIcon className="folder-icon" />
-                    )}
+                    <span className="folder-expander" aria-hidden>
+                      {showChildren ? '▼' : '▶'}
+                    </span>
                     <span className="folder-name">{folder.name}</span>
                   </div>
 
@@ -202,17 +247,16 @@ export const Sidebar: React.FC = () => {
                   )}
                 </div>
 
-                {/* 展开的文件子列表 */}
-                {isExpanded && (
+                {showChildren && (
                   <div className="folder-children-list">
-                    {folder.files.length === 0 ? (
+                    {visibleFiles.length === 0 ? (
                       <div className="sidebar-empty-hint compact">
-                        <FileText className="sidebar-empty-icon" aria-hidden />
-                        <span>此文件夹下没有教程</span>
+                        <span>此文件夹下暂无内容</span>
                       </div>
                     ) : (
-                      folder.files.map((file, fileIdx) => {
+                      visibleFiles.map((file) => {
                         const isSelected = activeFileId === file.id
+                        const fileIdxFull = folder.files.findIndex((f) => f.id === file.id)
                         return (
                           <div
                             key={file.id}
@@ -223,8 +267,7 @@ export const Sidebar: React.FC = () => {
                             className={`file-item ${isSelected ? 'selected' : ''}`}
                           >
                             <div className="file-title-area">
-                              <FileText className="file-icon" />
-                              <span>{file.name}</span>
+                              <span className="file-name-text">{file.name}</span>
                             </div>
 
                             {/* 管理员对教程文件的操作 */}
@@ -232,7 +275,7 @@ export const Sidebar: React.FC = () => {
                               <div className="item-actions-group">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); moveFile(folder.id, file.id, 'up') }}
-                                  disabled={fileIdx === 0}
+                                  disabled={fileIdxFull === 0}
                                   className="icon-action-btn"
                                   title="上移"
                                 >
@@ -240,7 +283,7 @@ export const Sidebar: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); moveFile(folder.id, file.id, 'down') }}
-                                  disabled={fileIdx === folder.files.length - 1}
+                                  disabled={fileIdxFull === folder.files.length - 1}
                                   className="icon-action-btn"
                                   title="下移"
                                 >
@@ -285,6 +328,18 @@ export const Sidebar: React.FC = () => {
         )}
       </div>
 
+      <AuthModal
+        isOpen={isAuthOpen}
+        adminLoginEnabled={adminLoginEnabled}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={() => {
+          setIsAuthOpen(false)
+          setToast({ message: '管理员解锁成功，可以编辑画布了。', type: 'success' })
+        }}
+        onFail={(msg) => setToast({ message: msg, type: 'error' })}
+        loginAdmin={loginAdmin}
+      />
+
       {/* 防误删二次确认弹窗 */}
       <SafeDeleteModal 
         isOpen={deleteModal.isOpen}
@@ -295,11 +350,11 @@ export const Sidebar: React.FC = () => {
       />
 
       {/* Toast 弹出提示 */}
-      {toastMessage && (
-        <Toast 
-          message={toastMessage} 
-          type="success" 
-          onClose={() => setToastMessage(null)} 
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </aside>

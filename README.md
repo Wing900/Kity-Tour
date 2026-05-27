@@ -10,6 +10,7 @@
 - 中间画布：Excalidraw 手绘区（支持翻页、多幻灯片）
 - 顶部栏：管理员解锁、JSON 备份导入导出
 - 开发模式：画布修改自动写入 `public/data/tour-data.json`
+- 标签页与顶栏 Logo 使用仓库内 `public/logo.png`（与 PlotKityCat 官方图一致，便于离线/GitHub Pages）
 
 ## 本地运行
 

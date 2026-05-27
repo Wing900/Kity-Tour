@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useTour } from '../../context/TourContext'
 import { SlideCanvas } from '../Canvas/SlideCanvas'
 import { Button } from '../UI/Button'
@@ -33,6 +33,26 @@ export const Main: React.FC = () => {
   
   // 删除页面确认弹窗状态
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const canvasStageRef = useRef<HTMLDivElement>(null)
+  const skipCanvasFadeIn = useRef(true)
+
+  useEffect(() => {
+    if (skipCanvasFadeIn.current) {
+      skipCanvasFadeIn.current = false
+      return
+    }
+    const el = canvasStageRef.current
+    if (!el) return
+    el.classList.remove('canvas-stage--fade-in')
+    void el.offsetWidth
+    el.classList.add('canvas-stage--fade-in')
+    const onEnd = () => el.classList.remove('canvas-stage--fade-in')
+    el.addEventListener('animationend', onEnd, { once: true })
+    return () => {
+      el.removeEventListener('animationend', onEnd)
+    }
+  }, [activeFileId, currentSlideIndex])
 
   // 获取当前文件信息及幻灯片总数
   const activeFolder = folders.find(f => f.id === activeFolderId)
@@ -110,72 +130,64 @@ export const Main: React.FC = () => {
 
   return (
     <main className="main-panel">
-      {/* 路径面包屑导航 */}
-      <div className="breadcrumb-bar">
-        <div className="breadcrumb-path">
-          <span>{activeFolder?.name || '请选择文件夹'}</span>
-          <span>/</span>
-          <span className="breadcrumb-current">{activeFile?.name || '请选择文件'}</span>
-        </div>
-      </div>
-
-      {/* 画布卡片区域 */}
       <div className="canvas-wrapper">
-        <SlideCanvas />
+        <div ref={canvasStageRef} className="canvas-stage">
+          <SlideCanvas />
+        </div>
+
+        {activeFile && totalSlides > 0 && (
+          <div className="canvas-pager">
+            <div className="pager-controls">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handlePrev}
+                disabled={currentSlideIndex === 0}
+                title="上一页 (←)"
+                className="pager-btn"
+              >
+                <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
+              </Button>
+
+              {isAdmin && totalSlides > 1 ? (
+                <div className="slide-tabs" role="tablist" aria-label="幻灯片页面">
+                  {activeFile.slides.map((slide, index) => (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={index === currentSlideIndex}
+                      className={`slide-tab${index === currentSlideIndex ? ' active' : ''}`}
+                      onClick={() => goToSlide(index)}
+                      title={`第 ${index + 1} 页`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <span className="page-indicator">
+                  第 {currentSlideIndex + 1} / {totalSlides} 页
+                </span>
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentSlideIndex === totalSlides - 1}
+                title={isAdmin ? '下一页 (→)' : '下一页 (→ / 空格)'}
+                className="pager-btn"
+              >
+                <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 底部导航及页码 */}
-      {activeFile && totalSlides > 0 && (
-        <div className="pagination-footer">
-          {/* 翻页控制键与页数指示 */}
-          <div className="pager-controls">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handlePrev}
-              disabled={currentSlideIndex === 0}
-              title="上一页 (←)"
-              className="pager-btn"
-            >
-              <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
-            </Button>
-
-            {isAdmin && totalSlides > 1 ? (
-              <div className="slide-tabs" role="tablist" aria-label="幻灯片页面">
-                {activeFile.slides.map((slide, index) => (
-                  <button
-                    key={slide.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={index === currentSlideIndex}
-                    className={`slide-tab${index === currentSlideIndex ? ' active' : ''}`}
-                    onClick={() => goToSlide(index)}
-                    title={`第 ${index + 1} 页`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <span className="page-indicator">
-                第 {currentSlideIndex + 1} / {totalSlides} 页
-              </span>
-            )}
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleNext}
-              disabled={currentSlideIndex === totalSlides - 1}
-              title={isAdmin ? '下一页 (→)' : '下一页 (→ / 空格)'}
-              className="pager-btn"
-            >
-              <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
-            </Button>
-          </div>
-
-          {/* 管理员编辑工具栏 */}
-          {isAdmin && (
+      {isAdmin && activeFile && totalSlides > 0 && (
+        <div className="admin-footer">
             <div className="admin-toolbar-wrap">
             <p className="canvas-link-hint">
               <Link2 className="canvas-link-hint-icon" strokeWidth={1.5} aria-hidden />
@@ -238,7 +250,6 @@ export const Main: React.FC = () => {
               </Button>
             </div>
             </div>
-          )}
         </div>
       )}
 

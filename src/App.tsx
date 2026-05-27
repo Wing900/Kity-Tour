@@ -7,10 +7,12 @@ function App() {
   return (
     <TourProvider>
       <div className="app-container">
-        <Header />
         <div className="app-body">
           <Sidebar />
-          <Main />
+          <div className="main-column">
+            <Header />
+            <Main />
+          </div>
         </div>
       </div>
     </TourProvider>
