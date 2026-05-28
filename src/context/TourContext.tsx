@@ -117,7 +117,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok) {
           const data = await response.json()
           if (data && data.folders) {
-            const loadedFolders = sanitizeFolders(await hydrateFolders(data.folders))
+            const loadedFolders = sanitizeFolders(data.folders)
             setFolders(loadedFolders)
             
             // 默认选中第一个文件夹的第一个文件
@@ -130,6 +130,14 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setCurrentSlideIndex(0)
               }
             }
+
+            hydrateFolders(loadedFolders)
+              .then((hydratedFolders) => {
+                setFolders(sanitizeFolders(hydratedFolders))
+              })
+              .catch((error) => {
+                console.error('图片资源后台加载失败:', error)
+              })
           }
         }
       } catch (error) {

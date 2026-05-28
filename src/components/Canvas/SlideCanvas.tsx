@@ -162,10 +162,13 @@ export const SlideCanvas: React.FC = () => {
   useEffect(() => {
     if (isAdmin || !excalidrawAPI || !activeSlide || !viewport) return
 
+    const visibleElements = getVisibleSlideElements(activeSlide)
     excalidrawAPI.updateScene({
+      elements: visibleElements,
+      files: activeSlide.files || {},
       appState: buildAppState(activeSlide, false, viewport)
     })
-  }, [activeSlideId, currentSlideIndex, excalidrawAPI, isAdmin, viewport])
+  }, [activeSlide, activeSlideId, currentSlideIndex, excalidrawAPI, isAdmin, viewport])
 
   useEffect(() => {
     if (isAdmin || !excalidrawAPI || !canvasInnerRef.current) return
