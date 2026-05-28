@@ -87,12 +87,8 @@ const savePlugin = () => ({
   }
 })
 
-// https://vite.dev/config/
-// GitHub Pages 项目站路径为 /Kity-Tour/，本地 dev 仍用 /
-const base = process.env.GITHUB_PAGES === 'true' ? '/Kity-Tour/' : '/'
-
 export default defineConfig({
-  base,
+  base: './',
   plugins: [react(), savePlugin()],
   define: {
     'process.env': {}
