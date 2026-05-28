@@ -10,6 +10,7 @@
 - 中间画布：Excalidraw 手绘区（支持翻页、多幻灯片）
 - 顶部栏：编辑模式工具、JSON 备份导入导出
 - 开发模式：画布修改自动写入 `public/data/tour-data.json`
+- 画布图片：开发模式自动拆分到 `public/data/scene-files/`，JSON 仅保存引用
 - 标签页与顶栏 Logo 使用仓库内 `public/logo.png`（与 PlotKityCat 官方图一致，便于离线/GitHub Pages）
 
 ## 本地运行
@@ -46,7 +47,11 @@ npm run dev
 
 `public/data/tour-data.json`
 
-生产构建后位于 `dist/data/tour-data.json`。可通过顶部 **导出备份 / 导入备份** 迁移数据。
+画布中插入的图片资源会单独落到：
+
+`public/data/scene-files/`
+
+生产构建后位于 `dist/data/` 下对应目录。可通过顶部 **导出备份 / 导入备份** 迁移数据。
 
 ## 技术栈
 
@@ -139,6 +144,7 @@ npm run build
 - 点击左上角 Logo 即可进入编辑模式。
 - 编辑模式只影响当前浏览器会话；刷新后会回到阅读模式。
 - 本地 `npm run dev` 下会自动写回 `public/data/tour-data.json`。
+- 本地插入的图片会自动写入 `public/data/scene-files/`，避免把大图直接塞进 JSON。
 - 已部署的静态站不会自动把改动写回服务器文件；如需长期保留，请导出 JSON 后更新仓库并重新部署。
 
 ### 更新已上线教程

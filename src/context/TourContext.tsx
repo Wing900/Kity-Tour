@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { hydrateSceneFiles } from '../lib/sceneFiles'
 
 export interface Slide {
   id: string
   elements: any[]
   appState?: any
+  files?: Record<string, any>
 }
 
 export interface FileItem {
@@ -53,7 +55,7 @@ interface TourContextType {
   deleteSlide: (index: number) => void
   duplicateSlide: (index: number) => void
   moveSlide: (index: number, direction: 'left' | 'right') => void
-  updateSlideCanvas: (slideId: string, elements: any[], appState: any) => void
+  updateSlideCanvas: (slideId: string, elements: any[], appState: any, files?: Record<string, any>) => void
   
   // 备份
   exportBackup: () => void
@@ -64,6 +66,7 @@ const TourContext = createContext<TourContextType | undefined>(undefined)
 
 const EMOJI_REGEX = /[\p{Extended_Pictographic}\p{Emoji_Presentation}]/gu
 const DATA_URL = `${import.meta.env.BASE_URL}data/tour-data.json`
+const BASE_URL = import.meta.env.BASE_URL
 
 const stripEmojis = (text: string): string =>
   text.replace(EMOJI_REGEX, '').replace(/\s{2,}/g, ' ').trim()
@@ -77,6 +80,24 @@ const sanitizeFolders = (folders: Folder[]): Folder[] =>
       name: stripEmojis(file.name) || file.name
     }))
   }))
+
+const hydrateFolders = async (folders: Folder[]): Promise<Folder[]> =>
+  Promise.all(
+    folders.map(async (folder) => ({
+      ...folder,
+      files: await Promise.all(
+        folder.files.map(async (file) => ({
+          ...file,
+          slides: await Promise.all(
+            file.slides.map(async (slide) => ({
+              ...slide,
+              files: await hydrateSceneFiles(slide.files, BASE_URL)
+            }))
+          )
+        }))
+      )
+    }))
+  )
 
 export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [folders, setFolders] = useState<Folder[]>([])
@@ -96,7 +117,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok) {
           const data = await response.json()
           if (data && data.folders) {
-            const loadedFolders = sanitizeFolders(data.folders)
+            const loadedFolders = sanitizeFolders(await hydrateFolders(data.folders))
             setFolders(loadedFolders)
             
             // 默认选中第一个文件夹的第一个文件
@@ -358,7 +379,8 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `s-${Date.now()}`,
       // 深拷贝 elements 以防引用冲突
       elements: JSON.parse(JSON.stringify(slideToCopy.elements)),
-      appState: { ...slideToCopy.appState, viewBackgroundColor: '#fef8ec' }
+      appState: { ...slideToCopy.appState, viewBackgroundColor: '#fef8ec' },
+      files: JSON.parse(JSON.stringify(slideToCopy.files ?? {}))
     }
 
     const updated = folders.map(f => {
@@ -411,7 +433,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentSlideIndex(newIndex)
   }
 
-  const updateSlideCanvas = useCallback((slideId: string, elements: any[], appState: any) => {
+  const updateSlideCanvas = useCallback((slideId: string, elements: any[], appState: any, files: Record<string, any> = {}) => {
     if (!activeFolderId || !activeFileId || !slideId) return
 
     const folder = folders.find(f => f.id === activeFolderId)
@@ -431,7 +453,9 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       JSON.stringify(slide.elements) === JSON.stringify(elements)
     const appStateUnchanged =
       JSON.stringify(slide.appState) === JSON.stringify(nextAppState)
-    if (elementsUnchanged && appStateUnchanged) return
+    const filesUnchanged =
+      JSON.stringify(slide.files ?? {}) === JSON.stringify(files)
+    if (elementsUnchanged && appStateUnchanged && filesUnchanged) return
 
     const updated = folders.map(f => {
       if (f.id === activeFolderId) {
@@ -443,7 +467,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
               ...fileItem,
               slides: fileItem.slides.map(s =>
                 s.id === slideId
-                  ? { ...s, elements, appState: nextAppState }
+                  ? { ...s, elements, appState: nextAppState, files }
                   : s
               )
             }
@@ -472,16 +496,20 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const importBackup = (importedData: Folder[]): boolean => {
     try {
       if (Array.isArray(importedData)) {
-        saveState(importedData)
-        if (importedData.length > 0) {
-          const firstFolder = importedData[0]
-          setActiveFolderId(firstFolder.id)
-          setExpandedFolders([firstFolder.id])
-          if (firstFolder.files.length > 0) {
-            setActiveFileId(firstFolder.files[0].id)
-            setCurrentSlideIndex(0)
+        hydrateFolders(importedData).then((hydratedData) => {
+          saveState(hydratedData)
+          if (hydratedData.length > 0) {
+            const firstFolder = hydratedData[0]
+            setActiveFolderId(firstFolder.id)
+            setExpandedFolders([firstFolder.id])
+            if (firstFolder.files.length > 0) {
+              setActiveFileId(firstFolder.files[0].id)
+              setCurrentSlideIndex(0)
+            }
           }
-        }
+        }).catch((error) => {
+          console.error('备份中的图片资源加载失败:', error)
+        })
         return true
       }
       return false

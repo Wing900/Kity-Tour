@@ -1,19 +1,74 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { Excalidraw } from '@excalidraw/excalidraw'
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
+import { Excalidraw, getCommonBounds } from '@excalidraw/excalidraw'
 import { useTour, type Slide } from '../../context/TourContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { openExternalLink } from '../../utils/openLink'
 import { FileQuestion } from 'lucide-react'
 import '@excalidraw/excalidraw/index.css'
 
-const buildAppState = (slide: Slide | undefined, isAdmin: boolean) => ({
-  ...(slide?.appState ?? {}),
-  viewBackgroundColor: '#fdf9f3',
-  theme: 'light' as const,
-  viewModeEnabled: !isAdmin,
-  currentItemStrokeWidth: 1,
-  currentItemRoughness: 0
-})
+const PREVIEW_PADDING = 48
+const MIN_PREVIEW_ZOOM = 0.1
+const MAX_PREVIEW_ZOOM = 2
+const WHEEL_ZOOM_FACTOR = 1.0015
+const LEGACY_PREVIEW_FRAME_ID = '__preview-fit-debug-frame__'
+const LEGACY_PREVIEW_CENTER_ID = '__preview-fit-debug-center__'
+
+const isLegacyPreviewElement = (element: any) =>
+  element.id === LEGACY_PREVIEW_FRAME_ID || element.id === LEGACY_PREVIEW_CENTER_ID
+
+const getVisibleSlideElements = (slide: Slide | undefined) =>
+  (slide?.elements || []).filter((element: any) =>
+    !element.isDeleted && !isLegacyPreviewElement(element)
+  )
+
+const computePreviewFitAppState = (
+  elements: any[],
+  viewport: { width: number; height: number } | null
+) => {
+  if (!viewport?.width || !viewport.height || !elements.length) return {}
+
+  const [minX, minY, maxX, maxY] = getCommonBounds(elements)
+  const usableWidth = Math.max(1, viewport.width - PREVIEW_PADDING * 2)
+  const usableHeight = Math.max(1, viewport.height - PREVIEW_PADDING * 2)
+  const boundsWidth = Math.max(1, maxX - minX)
+  const boundsHeight = Math.max(1, maxY - minY)
+  const zoomValue = Math.min(
+    MAX_PREVIEW_ZOOM,
+    Math.max(
+      MIN_PREVIEW_ZOOM,
+      Math.min(usableWidth / boundsWidth, usableHeight / boundsHeight)
+    )
+  )
+
+  const centerX = minX + boundsWidth / 2
+  const centerY = minY + boundsHeight / 2
+
+  return {
+    scrollX: viewport.width / (2 * zoomValue) - centerX,
+    scrollY: viewport.height / (2 * zoomValue) - centerY,
+    zoom: { value: zoomValue }
+  }
+}
+
+const buildAppState = (
+  slide: Slide | undefined,
+  isAdmin: boolean,
+  viewport: { width: number; height: number } | null
+) => {
+  const appState = slide?.appState ?? {}
+  const { scrollX, scrollY, zoom, width, height, ...readerAppState } = appState
+  const visibleElements = getVisibleSlideElements(slide)
+
+  return {
+    ...(isAdmin ? appState : readerAppState),
+    ...(!isAdmin ? computePreviewFitAppState(visibleElements, viewport) : {}),
+    viewBackgroundColor: '#fdf9f3',
+    theme: 'light' as const,
+    viewModeEnabled: !isAdmin,
+    currentItemStrokeWidth: 1,
+    currentItemRoughness: 0
+  }
+}
 
 export const SlideCanvas: React.FC = () => {
   const {
@@ -26,9 +81,11 @@ export const SlideCanvas: React.FC = () => {
   } = useTour()
 
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null)
+  const [viewport, setViewport] = useState<{ width: number; height: number } | null>(null)
   const activeSlideRef = useRef('')
   const isSyncingRef = useRef(false)
   const debouncedSaveRef = useRef<{ flush: () => void } | null>(null)
+  const canvasInnerRef = useRef<HTMLDivElement | null>(null)
 
   const activeFolder = folders.find(f => f.id === activeFolderId)
   const activeFile = activeFolder?.files.find(f => f.id === activeFileId)
@@ -36,65 +93,121 @@ export const SlideCanvas: React.FC = () => {
   const activeSlideId = activeSlide?.id || ''
 
   const debouncedSave = useDebounce(
-    (slideId: string, elements: any[], appState: any) => {
+    (slideId: string, elements: any[], appState: any, files: Record<string, any>) => {
       if (!isAdmin) return
-      updateSlideCanvas(slideId, elements, appState)
+      updateSlideCanvas(slideId, elements, appState, files)
     },
     800
   )
   debouncedSaveRef.current = debouncedSave
 
-  const handleChange = (elements: readonly any[], appState: any) => {
+  const handleChange = (elements: readonly any[], appState: any, files: Record<string, any>) => {
     if (isSyncingRef.current || !isAdmin || !activeSlideId) return
-    const validElements = elements.filter(el => !el.isDeleted)
-    debouncedSave(activeSlideId, validElements, appState)
+    const validElements = elements.filter(el => !el.isDeleted && !isLegacyPreviewElement(el))
+    const currentFiles = excalidrawAPI?.getFiles?.() ?? files ?? {}
+    debouncedSave(activeSlideId, validElements, appState, currentFiles)
   }
-
-  const loadSlideIntoCanvas = useCallback(
-    (slide: Slide) => {
-      if (!excalidrawAPI) return
-
-      isSyncingRef.current = true
-      excalidrawAPI.updateScene({
-        elements: slide.elements || [],
-        appState: buildAppState(slide, isAdmin)
-      })
-
-      window.setTimeout(() => {
-        if (!excalidrawAPI) {
-          isSyncingRef.current = false
-          return
-        }
-        const { scrollX, scrollY, zoom } = slide.appState ?? {}
-        if (scrollX != null || scrollY != null || zoom != null) {
-          excalidrawAPI.updateScene({
-            appState: {
-              scrollX: scrollX ?? 0,
-              scrollY: scrollY ?? 0,
-              zoom: zoom ?? { value: 1 },
-              viewModeEnabled: !isAdmin
-            }
-          })
-        } else if (slide.elements?.length) {
-          excalidrawAPI.scrollToContent(undefined, {
-            fitToViewport: true,
-            viewportZoomFactor: 0.9,
-            animate: false
-          })
-        }
-        window.setTimeout(() => {
-          isSyncingRef.current = false
-        }, 50)
-      }, 50)
-    },
-    [excalidrawAPI, isAdmin]
-  )
 
   // 仅在切换幻灯片时加载画布；切换前先保存上一页
   useEffect(() => {
-    if (!excalidrawAPI || !activeFileId || !activeSlideId) return
+    return () => {
+      debouncedSaveRef.current?.flush()
+    }
+  }, [])
 
-    const slideIdentifier = `${activeFileId}-${activeSlideId}`
+  useEffect(() => {
+    if (!isAdmin) {
+      debouncedSaveRef.current?.flush()
+    }
+  }, [isAdmin])
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      debouncedSaveRef.current?.flush()
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!canvasInnerRef.current) return
+
+    const updateViewport = () => {
+      const nextViewport = {
+        width: canvasInnerRef.current?.clientWidth ?? 0,
+        height: canvasInnerRef.current?.clientHeight ?? 0
+      }
+      if (!nextViewport.width || !nextViewport.height) return
+      setViewport((current) => {
+        if (current?.width === nextViewport.width && current?.height === nextViewport.height) {
+          return current
+        }
+        return nextViewport
+      })
+    }
+
+    updateViewport()
+    const observer = new ResizeObserver(() => {
+      updateViewport()
+    })
+    observer.observe(canvasInnerRef.current)
+    return () => {
+      observer.disconnect()
+    }
+  }, [activeFileId, activeSlideId])
+
+  useEffect(() => {
+    if (isAdmin || !excalidrawAPI || !activeSlide || !viewport) return
+
+    excalidrawAPI.updateScene({
+      appState: buildAppState(activeSlide, false, viewport)
+    })
+  }, [activeSlideId, currentSlideIndex, excalidrawAPI, isAdmin, viewport])
+
+  useEffect(() => {
+    if (isAdmin || !excalidrawAPI || !canvasInnerRef.current) return
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      const appState = excalidrawAPI.getAppState?.()
+      if (!appState?.zoom?.value) return
+
+      const rect = canvasInnerRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      const currentZoom = appState.zoom.value
+      const nextZoom = Math.min(
+        MAX_PREVIEW_ZOOM,
+        Math.max(MIN_PREVIEW_ZOOM, currentZoom * Math.pow(WHEEL_ZOOM_FACTOR, -event.deltaY))
+      )
+      const mouseSceneX = (event.clientX - rect.left) / currentZoom - appState.scrollX
+      const mouseSceneY = (event.clientY - rect.top) / currentZoom - appState.scrollY
+
+      excalidrawAPI.updateScene({
+        appState: {
+          ...appState,
+          viewModeEnabled: true,
+          zoom: { value: nextZoom },
+          scrollX: (event.clientX - rect.left) / nextZoom - mouseSceneX,
+          scrollY: (event.clientY - rect.top) / nextZoom - mouseSceneY
+        }
+      })
+    }
+
+    const target = canvasInnerRef.current
+    target.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      target.removeEventListener('wheel', handleWheel)
+    }
+  }, [excalidrawAPI, isAdmin])
+
+  useEffect(() => {
+    if (!activeFileId || !activeSlideId) return
+
+    const slideIdentifier = `${activeFileId}-${activeSlideId}-${isAdmin ? 'edit' : 'view'}`
     if (activeSlideRef.current === slideIdentifier) return
 
     const file = folders
@@ -108,10 +221,9 @@ export const SlideCanvas: React.FC = () => {
     }
 
     activeSlideRef.current = slideIdentifier
-    loadSlideIntoCanvas(slide)
     // folders 仅作读取，不列入 deps，避免保存后反复 updateScene
   // eslint-disable-next-line react-hooks/exhaustive-deps -- folders
-  }, [excalidrawAPI, activeSlideId, activeFileId, activeFolderId, loadSlideIntoCanvas])
+  }, [activeSlideId, activeFileId, activeFolderId, isAdmin])
 
   const handleExcalidrawAPI = useCallback((api: any) => {
     setExcalidrawAPI((prev: any) => (prev === api ? prev : api))
@@ -137,33 +249,39 @@ export const SlideCanvas: React.FC = () => {
     )
   }
 
+  const visibleElements = getVisibleSlideElements(activeSlide)
+  const shouldWaitForPreviewViewport = !isAdmin && visibleElements.length > 0 && !viewport
+
   return (
     <div className={`slide-canvas-card${isAdmin ? '' : ' slide-canvas-card--readonly'}`}>
-      <div className="canvas-inner">
-        <Excalidraw
-          key={`${activeSlideId}-${isAdmin ? 'edit' : 'view'}`}
-          excalidrawAPI={handleExcalidrawAPI}
-          langCode="zh-CN"
-          viewModeEnabled={!isAdmin}
-          theme="light"
-          onChange={handleChange}
-          onLinkOpen={handleLinkOpen}
-          initialData={{
-            elements: activeSlide.elements || [],
-            appState: buildAppState(activeSlide, isAdmin)
-          }}
-          UIOptions={{
-            canvasActions: {
-              changeViewBackgroundColor: false,
-              clearCanvas: isAdmin,
-              export: false,
-              loadScene: false,
-              saveToActiveFile: false,
-              toggleTheme: false
-            },
-            welcomeScreen: false
-          }}
-        />
+      <div ref={canvasInnerRef} className="canvas-inner">
+        {!shouldWaitForPreviewViewport && (
+          <Excalidraw
+            key={`${activeSlideId}-${isAdmin ? 'edit' : 'view'}`}
+            excalidrawAPI={handleExcalidrawAPI}
+            langCode="zh-CN"
+            viewModeEnabled={!isAdmin}
+            theme="light"
+            onChange={handleChange}
+            onLinkOpen={handleLinkOpen}
+            initialData={{
+              elements: visibleElements,
+              appState: buildAppState(activeSlide, isAdmin, viewport),
+              files: activeSlide.files || {}
+            }}
+            UIOptions={{
+              canvasActions: {
+                changeViewBackgroundColor: false,
+                clearCanvas: isAdmin,
+                export: false,
+                loadScene: false,
+                saveToActiveFile: false,
+                toggleTheme: false
+              },
+              welcomeScreen: false
+            }}
+          />
+        )}
       </div>
     </div>
   )
