@@ -1,6 +1,8 @@
 import { isSceneFileAssetRef } from './sceneFilePaths'
 export type { SceneFileAssetRef } from './sceneFilePaths'
 
+const sceneFileCache = new Map<string, Promise<string>>()
+
 const toDataUrl = (blob: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -8,6 +10,23 @@ const toDataUrl = (blob: Blob): Promise<string> =>
     reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(blob)
   })
+
+const fetchSceneFileDataUrl = (assetUrl: string): Promise<string> => {
+  const cached = sceneFileCache.get(assetUrl)
+  if (cached) return cached
+
+  const request = fetch(assetUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      return response.blob()
+    })
+    .then(toDataUrl)
+
+  sceneFileCache.set(assetUrl, request)
+  return request
+}
 
 export const hydrateSceneFiles = async (
   files: Record<string, any> | undefined,
@@ -23,12 +42,7 @@ export const hydrateSceneFiles = async (
 
       try {
         const assetUrl = `${baseUrl}${fileData.assetPath}`
-        const response = await fetch(assetUrl)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-        const blob = await response.blob()
-        const dataURL = await toDataUrl(blob)
+        const dataURL = await fetchSceneFileDataUrl(assetUrl)
         return [fileId, { ...fileData, dataURL }] as const
       } catch (error) {
         console.error(`无法加载图片资源 ${fileData.assetPath}:`, error)

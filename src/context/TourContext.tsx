@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { hydrateSceneFiles } from '../lib/sceneFiles'
+import { isSceneFileAssetRef } from '../lib/sceneFilePaths'
 
 export interface Slide {
   id: string
@@ -99,6 +100,31 @@ const hydrateFolders = async (folders: Folder[]): Promise<Folder[]> =>
     }))
   )
 
+const hasPendingSceneFiles = (files: Record<string, any> | undefined): boolean =>
+  Object.values(files ?? {}).some((fileData) =>
+    isSceneFileAssetRef(fileData) && !fileData.dataURL
+  )
+
+const mergeHydratedSceneFiles = (
+  currentFiles: Record<string, any> | undefined,
+  hydratedFiles: Record<string, any>
+): Record<string, any> => {
+  const files = currentFiles ?? {}
+  return Object.fromEntries(
+    Object.entries(files).map(([fileId, fileData]) => {
+      const hydratedFile = hydratedFiles[fileId]
+      if (
+        hydratedFile?.dataURL &&
+        isSceneFileAssetRef(fileData) &&
+        fileData.assetPath === hydratedFile.assetPath
+      ) {
+        return [fileId, hydratedFile]
+      }
+      return [fileId, fileData]
+    })
+  )
+}
+
 export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [folders, setFolders] = useState<Folder[]>([])
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
@@ -130,14 +156,6 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setCurrentSlideIndex(0)
               }
             }
-
-            hydrateFolders(loadedFolders)
-              .then((hydratedFolders) => {
-                setFolders(sanitizeFolders(hydratedFolders))
-              })
-              .catch((error) => {
-                console.error('图片资源后台加载失败:', error)
-              })
           }
         }
       } catch (error) {
@@ -153,6 +171,50 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     setCurrentSlideIndex(0)
   }, [activeFileId])
+
+  useEffect(() => {
+    if (!activeFolderId || !activeFileId) return
+
+    const folder = folders.find(f => f.id === activeFolderId)
+    const file = folder?.files.find(f => f.id === activeFileId)
+    const slide = file?.slides[currentSlideIndex]
+    if (!slide || !hasPendingSceneFiles(slide.files)) return
+
+    let cancelled = false
+    hydrateSceneFiles(slide.files, BASE_URL)
+      .then((hydratedFiles) => {
+        if (cancelled) return
+        setFolders((currentFolders) =>
+          currentFolders.map((currentFolder) => {
+            if (currentFolder.id !== activeFolderId) return currentFolder
+            return {
+              ...currentFolder,
+              files: currentFolder.files.map((currentFile) => {
+                if (currentFile.id !== activeFileId) return currentFile
+                return {
+                  ...currentFile,
+                  slides: currentFile.slides.map((currentSlide) =>
+                    currentSlide.id === slide.id
+                      ? {
+                          ...currentSlide,
+                          files: mergeHydratedSceneFiles(currentSlide.files, hydratedFiles)
+                        }
+                      : currentSlide
+                  )
+                }
+              })
+            }
+          })
+        )
+      })
+      .catch((error) => {
+        console.error('当前页图片资源加载失败:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeFolderId, activeFileId, currentSlideIndex, folders])
 
   // 3. 通用保存函数：更新状态并在开发环境下写入本地硬盘
   const saveState = async (updatedFolders: Folder[]) => {

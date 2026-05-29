@@ -4,6 +4,7 @@ export interface SceneFileAssetRef {
   created?: number
   lastRetrieved?: number
   assetPath: string
+  dataURL?: string
 }
 
 const MIME_EXTENSION_MAP: Record<string, string> = {
