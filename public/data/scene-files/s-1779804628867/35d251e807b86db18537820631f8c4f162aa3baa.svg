@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- 1. 黑板/课堂背景（保持拙朴的手绘轮廓） -->
+  <path d="M 15,20             C 18,18 82,16 85,20             L 83,75             C 80,79 18,77 15,73             Z" fill="none" stroke="#333333" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 2. “数学”核心：放大并清晰化的直角坐标系与函数曲线 -->
+  <!-- 坐标轴，带有箭头（手绘风格） -->
+  <path d="M 50,28 L 50,65 M 50,28 L 47,32 M 50,28 L 53,32" fill="none" stroke="#333333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 33,48 L 70,48 M 70,48 L 66,45 M 70,48 L 66,51" fill="none" stroke="#333333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 经典的数学曲线（例如正弦波或抛物线，占据黑板主体） -->
+  <path d="M 36,55 C 40,55 42,35 50,48 C 58,61 60,41 64,41" fill="none" stroke="#333333" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 3. “数学符号”：在黑板角落点缀手绘的经典符号，增加数学味 -->
+  <path d="M 68,30 L 78,30 M 73,25 L 73,35" fill="none" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/> <!-- 加号 -->
+  <path d="M 23,32 L 30,32" fill="none" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/> <!-- 减号 -->
+  <circle cx="27" cy="62" r="2.5" fill="#333333"/> <!-- 点 -->
+
+  <!-- 4. “带进课堂”：黑板下方的讲台与粉笔暗示（保持一致） -->
+  <!-- 讲台边缘 -->
+  <path d="M 10,85 L 90,84" fill="none" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+  <!-- 乱入的一只粉笔或教鞭 -->
+  <path d="M 25,82 L 31,69" fill="none" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+</svg>

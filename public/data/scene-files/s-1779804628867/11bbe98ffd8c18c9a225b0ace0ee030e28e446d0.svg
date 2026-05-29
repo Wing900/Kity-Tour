@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- 摄像机主体（故意画得像个复古的手绘小方盒） -->
+  <path d="M 20,38             C 21,32 55,30 55,36             L 54,66             C 54,72 22,74 20,67             Z" fill="none" stroke="#333333" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 镜头部分 -->
+  <path d="M 55,44 L 74,34 L 75,68 L 54,58" fill="none" stroke="#333333" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 胶卷轮盘（上方两个小圆，带有一点错位） -->
+  <path d="M 28,32 C 26,20 40,22 38,32" fill="none" stroke="#333333" stroke-width="2.5"/>
+  <path d="M 44,31 C 42,21 54,23 52,31" fill="none" stroke="#333333" stroke-width="2.5"/>
+
+  <!-- 介绍/新鲜感暗示（右上角的闪烁手绘线条） -->
+  <path d="M 72,20 L 76,14 M 84,25 L 92,23 M 80,36 L 87,40" fill="none" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
