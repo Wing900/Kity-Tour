@@ -77,6 +77,7 @@ export const SlideCanvas: React.FC = () => {
     activeFileId,
     currentSlideIndex,
     isAdmin,
+    isActiveSlideHydrating,
     updateSlideCanvas
   } = useTour()
 
@@ -253,12 +254,13 @@ export const SlideCanvas: React.FC = () => {
   }
 
   const visibleElements = getVisibleSlideElements(activeSlide)
-  const shouldWaitForPreviewViewport = !isAdmin && visibleElements.length > 0 && !viewport
+  const shouldWaitForPreviewCanvas =
+    !isAdmin && visibleElements.length > 0 && (!viewport || isActiveSlideHydrating)
 
   return (
     <div className={`slide-canvas-card${isAdmin ? '' : ' slide-canvas-card--readonly'}`}>
       <div ref={canvasInnerRef} className="canvas-inner">
-        {!shouldWaitForPreviewViewport && (
+        {!shouldWaitForPreviewCanvas && (
           <Excalidraw
             key={`${activeSlideId}-${isAdmin ? 'edit' : 'view'}`}
             excalidrawAPI={handleExcalidrawAPI}

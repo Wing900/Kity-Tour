@@ -29,6 +29,7 @@ interface TourContextType {
   isAdmin: boolean
   expandedFolders: string[]
   isLoading: boolean
+  isActiveSlideHydrating: boolean
   
   // 核心操作
   setActiveFolderId: (id: string | null) => void
@@ -133,6 +134,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [expandedFolders, setExpandedFolders] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [hydratingSlideId, setHydratingSlideId] = useState<string | null>(null)
 
   // 1. 初始化时从静态 JSON 获取数据，兼容子路径部署
   useEffect(() => {
@@ -181,6 +183,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!slide || !hasPendingSceneFiles(slide.files)) return
 
     let cancelled = false
+    setHydratingSlideId(slide.id)
     hydrateSceneFiles(slide.files, BASE_URL)
       .then((hydratedFiles) => {
         if (cancelled) return
@@ -210,9 +213,15 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .catch((error) => {
         console.error('当前页图片资源加载失败:', error)
       })
+      .finally(() => {
+        if (!cancelled) {
+          setHydratingSlideId((current) => current === slide.id ? null : current)
+        }
+      })
 
     return () => {
       cancelled = true
+      setHydratingSlideId((current) => current === slide.id ? null : current)
     }
   }, [activeFolderId, activeFileId, currentSlideIndex, folders])
 
@@ -598,6 +607,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAdmin,
       expandedFolders,
       isLoading,
+      isActiveSlideHydrating: Boolean(activeFolderId && activeFileId && hydratingSlideId),
       setActiveFolderId,
       setActiveFileId,
       setCurrentSlideIndex,
