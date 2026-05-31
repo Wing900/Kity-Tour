@@ -442,6 +442,78 @@
                     1
                   ],
                   "crop": null
+                },
+                {
+                  "id": "hLus1ntds9WOufkMCKkoP",
+                  "type": "rectangle",
+                  "x": 989.3333740234375,
+                  "y": 608.9999694824219,
+                  "width": 236.6666259765625,
+                  "height": 37,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "aO",
+                  "roundness": {
+                    "type": 3
+                  },
+                  "seed": 695392155,
+                  "version": 581,
+                  "versionNonce": 776789685,
+                  "isDeleted": false,
+                  "boundElements": [
+                    {
+                      "type": "text",
+                      "id": "XUxCrsT61OQ_APLFP5ZA3"
+                    }
+                  ],
+                  "updated": 1780196029847,
+                  "link": null,
+                  "locked": false
+                },
+                {
+                  "id": "XUxCrsT61OQ_APLFP5ZA3",
+                  "type": "text",
+                  "x": 1012.2466888427734,
+                  "y": 613.9999694824219,
+                  "width": 190.83999633789062,
+                  "height": 27,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "aP",
+                  "roundness": null,
+                  "seed": 1943294267,
+                  "version": 429,
+                  "versionNonce": 1350390555,
+                  "isDeleted": false,
+                  "boundElements": [],
+                  "updated": 1780196029847,
+                  "link": null,
+                  "locked": false,
+                  "text": "QQ群：1104137806",
+                  "fontSize": 20,
+                  "fontFamily": 6,
+                  "textAlign": "center",
+                  "verticalAlign": "middle",
+                  "containerId": "hLus1ntds9WOufkMCKkoP",
+                  "originalText": "QQ群：1104137806",
+                  "autoResize": true,
+                  "lineHeight": 1.35
                 }
               ],
               "appState": {
