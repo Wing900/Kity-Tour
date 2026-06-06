@@ -983,7 +983,7 @@
                   "updated": 1780310058066,
                   "link": null,
                   "locked": false,
-                  "text": "如果你下载过",
+                  "text": "如果你下载���",
                   "fontSize": 20,
                   "fontFamily": 5,
                   "textAlign": "left",
@@ -13354,21 +13354,149 @@
       "id": "case-library",
       "name": "案例库",
       "files": []
+    },
+    {
+      "id": "f-1780668076938",
+      "name": "赞助",
+      "files": [
+        {
+          "id": "l-1780668101316",
+          "name": "为爱发电",
+          "slides": [
+            {
+              "id": "s-1780668101316",
+              "elements": [
+                {
+                  "id": "S3oFNkqquaERVq8kWxdn5",
+                  "type": "text",
+                  "x": 319.3333740234375,
+                  "y": 173.66665649414062,
+                  "width": 686.5,
+                  "height": 75,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a0",
+                  "roundness": null,
+                  "seed": 639117923,
+                  "version": 304,
+                  "versionNonce": 875776163,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1780668241950,
+                  "link": null,
+                  "locked": false,
+                  "text": "开发团队目前没有任何收入，唯一的投资是同学的一点小投资，为爱发电ing。\n\n如果小猫真的帮到了您，欢迎您赞助我们一杯咖啡，支持我们做出更好的产品",
+                  "fontSize": 20,
+                  "fontFamily": 5,
+                  "textAlign": "left",
+                  "verticalAlign": "top",
+                  "containerId": null,
+                  "originalText": "开发团队目前没有任何收入，唯一的投资是同学的一点小投资，为爱发电ing。\n\n如果小猫真的帮到了您，欢迎您赞助我们一杯咖啡，支持我们做出更好的产品",
+                  "autoResize": true,
+                  "lineHeight": 1.25
+                },
+                {
+                  "id": "Qpr1zzo6pAQ-t6OCa5HTg",
+                  "type": "image",
+                  "x": 439.943009118541,
+                  "y": 277.5,
+                  "width": 384.11398176291794,
+                  "height": 407,
+                  "angle": 0,
+                  "strokeColor": "transparent",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a1",
+                  "roundness": null,
+                  "seed": 1387552547,
+                  "version": 87,
+                  "versionNonce": 671296227,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1780668517570,
+                  "link": null,
+                  "locked": false,
+                  "status": "pending",
+                  "fileId": "2697424cda2de3057e436fc6878cbfeef3275723",
+                  "scale": [
+                    1,
+                    1
+                  ],
+                  "crop": null
+                },
+                {
+                  "id": "-PN2wymZmcPf3KjY-WQ_g",
+                  "type": "text",
+                  "x": 322.66668701171875,
+                  "y": 728.3333740234375,
+                  "width": 800,
+                  "height": 225,
+                  "angle": 0,
+                  "strokeColor": "#1e1e1e",
+                  "backgroundColor": "transparent",
+                  "fillStyle": "solid",
+                  "strokeWidth": 1,
+                  "strokeStyle": "solid",
+                  "roughness": 0,
+                  "opacity": 100,
+                  "groupIds": [],
+                  "frameId": null,
+                  "index": "a2",
+                  "roundness": null,
+                  "seed": 2146045475,
+                  "version": 483,
+                  "versionNonce": 206221453,
+                  "isDeleted": false,
+                  "boundElements": null,
+                  "updated": 1780668704893,
+                  "link": null,
+                  "locked": false,
+                  "text": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
+                  "fontSize": 20,
+                  "fontFamily": 5,
+                  "textAlign": "left",
+                  "verticalAlign": "top",
+                  "containerId": null,
+                  "originalText": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
+                  "autoResize": true,
+                  "lineHeight": 1.25
+                }
+              ],
+              "appState": {
+                "viewBackgroundColor": "#fdf9f3",
+                "zoom": {
+                  "value": 1
+                },
+                "scrollX": 0,
+                "scrollY": 0
+              },
+              "files": {
+                "2697424cda2de3057e436fc6878cbfeef3275723": {
+                  "id": "2697424cda2de3057e436fc6878cbfeef3275723",
+                  "mimeType": "image/png",
+                  "created": 1780668513906,
+                  "lastRetrieved": 1780668513906,
+                  "assetPath": "data/scene-files/s-1780668101316/2697424cda2de3057e436fc6878cbfeef3275723.png"
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
-  ],
-  "caseOverlays": {
-    "demo-classroom-parabola": {
-      "id": "case:slide:demo-classroom-parabola",
-      "elements": [],
-      "appState": {
-        "viewBackgroundColor": "#fdf9f3",
-        "zoom": {
-          "value": 1
-        },
-        "scrollX": 0,
-        "scrollY": 0
-      },
-      "files": {}
-    }
-  }
+  ]
 }
