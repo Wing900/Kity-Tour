@@ -3,7 +3,7 @@ import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { Plus, Edit3, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { Plus, Edit3, Trash2, ChevronUp, ChevronDown, X } from 'lucide-react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
 
@@ -25,7 +25,12 @@ function filterFoldersByQuery(folders: Folder[], query: string): FilteredFolder[
   return out
 }
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  mobileMenuOpen?: boolean
+  onMobileMenuClose?: () => void
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuClose }) => {
   const {
     folders,
     activeFileId,
@@ -141,7 +146,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${mobileMenuOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-brand">
         <img
           src={`${import.meta.env.BASE_URL}logo.png`}
@@ -173,6 +178,9 @@ export const Sidebar: React.FC = () => {
             <Plus className="w-4 h-4" />
           </Button>
         )}
+        <button className="sidebar-close-btn-mobile" onClick={onMobileMenuClose} aria-label="关闭菜单">
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* 目录列表 */}
@@ -257,6 +265,7 @@ export const Sidebar: React.FC = () => {
                             onClick={() => {
                               setActiveFolderId(folder.id)
                               setActiveFileId(file.id)
+                              onMobileMenuClose?.()
                             }}
                             className={`file-item ${isSelected ? 'selected' : ''}`}
                           >
@@ -307,7 +316,10 @@ export const Sidebar: React.FC = () => {
                     {/* 管理员新增教程的快捷按钮 */}
                     {isAdmin && (
                       <div 
-                        onClick={(e) => handleCreateFile(e, folder.id)}
+                        onClick={(e) => {
+                          handleCreateFile(e, folder.id)
+                          onMobileMenuClose?.()
+                        }}
                         className="sidebar-add-file-btn"
                       >
                         <Plus className="w-3 h-3" />

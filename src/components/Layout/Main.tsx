@@ -37,6 +37,27 @@ export const Main: React.FC = () => {
   const canvasStageRef = useRef<HTMLDivElement>(null)
   const skipCanvasFadeIn = useRef(true)
 
+  // 移动端滑动翻页
+  const touchStartX = useRef<number | null>(null)
+  const SWIPE_THRESHOLD = 50
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return
+    const diff = e.changedTouches[0].clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        handlePrev()
+      } else {
+        handleNext()
+      }
+    }
+  }
+
   useEffect(() => {
     if (skipCanvasFadeIn.current) {
       skipCanvasFadeIn.current = false
@@ -129,7 +150,11 @@ export const Main: React.FC = () => {
   }
 
   return (
-    <main className="main-panel">
+    <main
+      className="main-panel"
+      onTouchStart={!isAdmin ? handleTouchStart : undefined}
+      onTouchEnd={!isAdmin ? handleTouchEnd : undefined}
+    >
       <div className="canvas-wrapper">
         <div ref={canvasStageRef} className="canvas-stage">
           <SlideCanvas />

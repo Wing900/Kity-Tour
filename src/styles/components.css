@@ -1,0 +1,286 @@
+/* ============================================
+   UI Components
+   ============================================ */
+
+/* ---- Modal / Dialog ---- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--ink) 35%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-header.danger {
+  color: var(--color-text);
+}
+
+.modal-header-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-label {
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.modal-input {
+  width: 100%;
+  border: none;
+  background-color: var(--bg-raised);
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--border-radius-sm);
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-input:focus {
+  background-color: var(--bg-app);
+  box-shadow: var(--focus-ring);
+}
+
+.modal-input.danger:focus {
+  box-shadow: var(--focus-ring);
+}
+
+.modal-tip {
+  font-size: 11px;
+  background-color: var(--bg-raised);
+  border: none;
+  padding: 8px 12px;
+  color: var(--color-text-muted);
+  border-radius: var(--border-radius-sm);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-delete-target {
+  display: block;
+  margin: 6px 0;
+  padding: 8px 10px;
+  background-color: var(--bg-hover);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-delete-warning {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.modal-delete-code {
+  font-family: ui-monospace, monospace;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* ---- Buttons ---- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-medium);
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.btn-md {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.btn-lg {
+  padding: 10px 20px;
+  font-size: 15px;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-primary:active:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+
+.btn-danger {
+  background-color: var(--bg-hover);
+  color: var(--color-text);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--bg-selected);
+}
+
+.btn-outline,
+.btn-flat {
+  background-color: transparent;
+  color: var(--color-text);
+}
+
+.btn-outline:hover:not(:disabled),
+.btn-flat:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+
+.btn:disabled {
+  background-color: var(--bg-hover);
+  color: var(--color-text-muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---- Card ---- */
+
+.card {
+  border: none;
+  border-radius: var(--border-radius-md);
+}
+
+.card-default,
+.card-outline {
+  background-color: var(--bg-app);
+}
+
+.card-accent {
+  background-color: var(--bg-raised);
+}
+
+.card-shadow-sm {
+  box-shadow: none;
+}
+
+.card-shadow-md {
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- Toast ---- */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--divider-faint);
+  box-shadow: none;
+  background-color: var(--cream);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  font-size: 13px;
+  animation: slide-in 0.2s ease forwards;
+}
+
+.toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.toast-dot.success,
+.toast-dot.info { background-color: var(--color-primary); }
+.toast-dot.error { background-color: var(--color-text-muted); }
+
+.toast-close {
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  color: var(--color-text);
+}
+
+/* ---- Keyframes ---- */
+
+@keyframes slide-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.22s ease forwards;
+}
