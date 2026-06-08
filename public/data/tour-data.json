@@ -13558,7 +13558,7 @@
     },
     {
       "id": "f-1780668076938",
-      "name": "赞助",
+      "name": "关于作者",
       "files": [
         {
           "id": "l-1780668101316",
@@ -13590,7 +13590,7 @@
                   "version": 304,
                   "versionNonce": 875776163,
                   "isDeleted": false,
-                  "boundElements": null,
+                  "boundElements": [],
                   "updated": 1780668241950,
                   "link": null,
                   "locked": false,
@@ -13627,7 +13627,7 @@
                   "version": 87,
                   "versionNonce": 671296227,
                   "isDeleted": false,
-                  "boundElements": null,
+                  "boundElements": [],
                   "updated": 1780668517570,
                   "link": null,
                   "locked": false,
@@ -13644,7 +13644,7 @@
                   "type": "text",
                   "x": 322.66668701171875,
                   "y": 728.3333740234375,
-                  "width": 800,
+                  "width": 1020,
                   "height": 225,
                   "angle": 0,
                   "strokeColor": "#1e1e1e",
@@ -13659,20 +13659,20 @@
                   "index": "a2",
                   "roundness": null,
                   "seed": 2146045475,
-                  "version": 483,
-                  "versionNonce": 206221453,
+                  "version": 513,
+                  "versionNonce": 1499901163,
                   "isDeleted": false,
-                  "boundElements": null,
-                  "updated": 1780668704893,
+                  "boundElements": [],
+                  "updated": 1780928821246,
                   "link": null,
                   "locked": false,
-                  "text": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
+                  "text": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的，我们会坚持开源和免费\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
                   "fontSize": 20,
                   "fontFamily": 5,
                   "textAlign": "left",
                   "verticalAlign": "top",
                   "containerId": null,
-                  "originalText": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
+                  "originalText": "其实我们开始做这个项目想的很少。\n\n没想到做出来后宣传和推广，内测，下载什么之类的，要想用户体验好，就不得不花钱\n\n这些是小开发者比不上大公司的地方，但是我们依然认为我们做的是对的，是比他们更好的，我们会坚持开源和免费\n\n我见过许多为爱发电的项目就是这样失败的，但我依然想试试。\n\n",
                   "autoResize": true,
                   "lineHeight": 1.25
                 }
@@ -13683,7 +13683,7 @@
                   "value": 1
                 },
                 "scrollX": 0,
-                "scrollY": 0
+                "scrollY": -100
               },
               "files": {
                 "2697424cda2de3057e436fc6878cbfeef3275723": {
