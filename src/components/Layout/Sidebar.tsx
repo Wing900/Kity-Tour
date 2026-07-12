@@ -3,7 +3,7 @@ import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { PdfBuilder, findExcalidrawCanvas, canvasToJpeg, collectLinks, drawLinksCanvas, wait } from '../../lib/exportPdf'
+import { PdfBuilder, canvasToJpeg, collectLinks, drawLinksCanvas, waitForNewCanvas } from '../../lib/exportPdf'
 import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X, Sparkle } from '@phosphor-icons/react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
@@ -97,6 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
     )
     let done = 0
     const builder = new PdfBuilder()
+    let prevCanvas: HTMLCanvasElement | null = null
     
     try {
       for (const folder of folders) {
@@ -105,9 +106,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
             setActiveFolderId(folder.id)
             setActiveFileId(file.id)
             setCurrentSlideIndex(slideIdx)
-            // 等 Excalidraw 重 mount + 渲完
-            await wait(500)
-            const canvas = findExcalidrawCanvas()
+            // 事件驱动：等新 canvas 渲染完成，不是固定时间
+            const canvas = await waitForNewCanvas(prevCanvas, 5000)
+            prevCanvas = canvas
             if (!canvas) {
               done++
               setExportProgress({ done, total })

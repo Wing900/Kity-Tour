@@ -165,3 +165,32 @@ export const drawLinksCanvas = (links: LinkEntry[]): HTMLCanvasElement => {
 
 export const wait = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms))
+
+// 等待新 Excalidraw canvas 渲染完成（事件驱动，非固定时间）
+// 流程：旧 canvas 消失（unmount）→ 新 canvas 出现（remount）→ RAF 两帧 + 渲染完
+export const waitForNewCanvas = async (
+  prevCanvas: HTMLCanvasElement | null,
+  timeout = 5000
+): Promise<HTMLCanvasElement | null> => {
+  const start = Date.now()
+  // ① 等旧 canvas 消失（跨页 remount 时 canvas 会被移除）
+  if (prevCanvas) {
+    while (Date.now() - start < timeout) {
+      const c = findExcalidrawCanvas()
+      if (!c || c !== prevCanvas) break
+      await wait(30)
+    }
+  }
+  // ② 等新 canvas 出现且尺寸> 0
+  let canvas: HTMLCanvasElement | null = null
+  while (Date.now() - start < timeout) {
+    canvas = findExcalidrawCanvas()
+    if (canvas && canvas.width > 0 && canvas.height > 0) break
+    await wait(30)
+  }
+  if (!canvas) return null
+  // ③ 等两帧 + 400ms 让 Excalidraw 把场景画完（含图片解码）
+  await new Promise<void>(r => { requestAnimationFrame(() => requestAnimationFrame(() => r())) })
+  await wait(400)
+  return findExcalidrawCanvas() || canvas
+}
