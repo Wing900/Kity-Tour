@@ -23,8 +23,8 @@ const getVisibleSlideElements = (slide: Slide | undefined) =>
 
 // 画布字体易读写化：手写体/装饰体 → Nunito 无衰线圆体(5)，保留 Helvetica(2)/Cascadia代码(3)/Nunito(5)
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const READABLE_FONT = 5
-const KEEP_FONTS = new Set([2, 3, 5])
+const READABLE_FONT = 6
+const KEEP_FONTS = new Set([2, 3, 6])
 const normalizeFontFamily = (elements: any[]) =>
   elements.map((el: any) =>
     el.type === 'text' && !KEEP_FONTS.has(el.fontFamily) ? { ...el, fontFamily: READABLE_FONT } : el
@@ -77,7 +77,7 @@ const buildAppState = (
     viewModeEnabled: !isAdmin,
     currentItemStrokeWidth: 1,
     currentItemRoughness: 0,
-    currentItemFontFamily: 5  // 新建文本默认 Nunito 无衰线圆体，易读写不卡通
+    currentItemFontFamily: 6  // 新建文本默认 Nunito 无衰线圆体，易读写不卡通
   }
 }
 

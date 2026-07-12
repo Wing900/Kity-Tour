@@ -4,7 +4,6 @@ import { SlideCanvas } from '../Canvas/SlideCanvas'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
-import { exportTutorialPdf } from '../../lib/exportPdf'
 import {
   CaretLeft,
   CaretRight,
@@ -13,8 +12,7 @@ import {
   Copy,
   ArrowLeft,
   ArrowRight,
-  LinkSimple,
-  FilePdf
+  LinkSimple
 } from '@phosphor-icons/react'
 
 export const Main: React.FC = () => {
@@ -32,10 +30,6 @@ export const Main: React.FC = () => {
   } = useTour()
 
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-
-  // 导出 PDF 状态
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportProgress, setExportProgress] = useState<{ done: number; total: number; current: string } | null>(null)
   
   // 删除页面确认弹窗状态
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -98,23 +92,6 @@ export const Main: React.FC = () => {
 
   const handleNext = () => {
     goToSlide(currentSlideIndex + 1)
-  }
-
-  const handleExportPdf = async () => {
-    if (isExporting) return
-    setIsExporting(true)
-    setExportProgress({ done: 0, total: 0, current: '' })
-    try {
-      await exportTutorialPdf(folders, (done, total, current) => {
-        setExportProgress({ done, total, current })
-      })
-      setToastMessage('教程 PDF 已导出！')
-    } catch (err: unknown) {
-      setToastMessage(`导出失败：${err instanceof Error ? err.message : String(err)}`)
-    } finally {
-      setIsExporting(false)
-      setExportProgress(null)
-    }
   }
 
   // 全局键盘监听（← / → / 空格翻页）
@@ -230,19 +207,6 @@ export const Main: React.FC = () => {
                 <CaretRight size={20} />
               </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPdf}
-              disabled={isExporting}
-              title="把所有幻灯片导出为一个 PDF 文件（每页一张）"
-              className="export-pdf-btn"
-            >
-              <FilePdf size={16} />
-              <span>{isExporting && exportProgress
-                ? `导出中 ${exportProgress.done}/${exportProgress.total}`
-                : '导出教程 PDF'}</span>
-            </Button>
           </div>
         )}
       </div>

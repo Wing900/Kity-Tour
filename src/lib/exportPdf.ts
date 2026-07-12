@@ -1,108 +1,167 @@
-// 教程 PDF 导出：遍历所有 folder/file/slide，每张导出 canvas PNG 组装 PDF + 三层目录
+// PDF 组装：接收每页 PNG dataURL + 三层目录元数据，输出 PDF
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { exportToCanvas } from '@excalidraw/excalidraw'
 import { jsPDF } from 'jspdf'
-import type { Folder, Slide } from '../context/TourContext'
 
-const LEGACY_PREVIEW_FRAME_ID = '__preview-fit-debug-frame__'
-const LEGACY_PREVIEW_CENTER_ID = '__preview-fit-debug-center__'
+export class PdfBuilder {
+  private doc: jsPDF
+  private pageNum = 0
+  private firstPage = true
+  private folderOutlines = new Map<string, any>()
+  private fileOutlines = new Map<string, any>()
 
-const isLegacyPreviewElement = (el: any) =>
-  el.id === LEGACY_PREVIEW_FRAME_ID || el.id === LEGACY_PREVIEW_CENTER_ID
+  constructor() {
+    this.doc = new jsPDF({ unit: 'px', format: [1280, 720], orientation: 'landscape' })
+  }
 
-// 画布字体易读写化（与 SlideCanvas 保持一致）：手写/装饰体 → Nunito(5)
-const READABLE_FONT = 5
-const KEEP_FONTS = new Set([2, 3, 5])
-const normalizeFontFamily = (elements: any[]) =>
-  elements.map((el: any) =>
-    el.type === 'text' && !KEEP_FONTS.has(el.fontFamily) ? { ...el, fontFamily: READABLE_FONT } : el
-  )
+  addPage(
+    imgData: string,
+    w: number,
+    h: number,
+    folderId: string,
+    folderName: string,
+    fileId: string,
+    fileName: string,
+    slideNum: number
+  ): void {
+    if (this.firstPage) {
+      this.doc.addImage(imgData, 'JPEG', 0, 0, w, h)
+      this.firstPage = false
+    } else {
+      this.doc.addPage([w, h])
+      this.doc.addImage(imgData, 'JPEG', 0, 0, w, h)
+    }
+    this.pageNum++
 
-const getVisibleElements = (slide: Slide) =>
-  (slide.elements || []).filter((el: any) => !el.isDeleted && !isLegacyPreviewElement(el))
+    if (!this.folderOutlines.has(folderId)) {
+      this.folderOutlines.set(
+        folderId,
+        this.doc.outline.add(null, folderName, { pageNumber: this.pageNum })
+      )
+    }
+    const fileKey = `${folderId}-${fileId}`
+    if (!this.fileOutlines.has(fileKey)) {
+      this.fileOutlines.set(
+        fileKey,
+        this.doc.outline.add(this.folderOutlines.get(folderId), fileName, { pageNumber: this.pageNum })
+      )
+    }
+    this.doc.outline.add(this.fileOutlines.get(fileKey), `第 ${slideNum} 页`, { pageNumber: this.pageNum })
+  }
 
-export type ExportProgress = (done: number, total: number, current: string) => void
+  save(filename: string): void {
+    if (this.pageNum === 0) throw new Error('没有可导出的幻灯片')
+    this.doc.save(filename)
+  }
 
-export async function exportTutorialPdf(
-  folders: Folder[],
-  onProgress?: ExportProgress
-): Promise<void> {
-  const doc = new jsPDF({ unit: 'px', format: [1280, 720], orientation: 'landscape' })
+  get pageCount(): number {
+    return this.pageNum
+  }
+}
 
-  let pageNum = 0
-  let firstPage = true
-  const folderOutlines = new Map<string, any>()
-  const fileOutlines = new Map<string, any>()
+// 找 Excalidraw 在 DOM 里渲染的主 canvas（取面积最大的）
+export const findExcalidrawCanvas = (): HTMLCanvasElement | null => {
+  const canvases = Array.from(document.querySelectorAll<HTMLCanvasElement>('canvas'))
+  if (canvases.length === 0) return null
+  return canvases.sort((a, b) => b.width * b.height - a.width * a.height)[0]
+}
 
-  // 算总数（用于进度）
-  const total = folders.reduce(
-    (n, f) => n + f.files.reduce((m, file) => m + file.slides.length, 0),
-    0
-  )
-  let done = 0
+// 缩放 canvas 到 max 1280px 宽 + 转 JPEG 85%，体积降 ~10x（文字依然清晰）
+export const canvasToJpeg = (src: HTMLCanvasElement, maxW = 1280): { imgData: string; w: number; h: number } => {
+  const scale = Math.min(1, maxW / src.width)
+  const w = Math.round(src.width * scale)
+  const h = Math.round(src.height * scale)
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const ctx = c.getContext('2d')
+  if (!ctx) throw new Error('canvas 2d 不可用')
+  ctx.drawImage(src, 0, 0, w, h)
+  return { imgData: c.toDataURL('image/jpeg', 0.85), w, h }
+}
 
+// 链接元数据
+export interface LinkEntry {
+  folder: string
+  file: string
+  slide: number
+  text: string
+  link: string
+}
+
+// 从 folders 提取所有 http 链接，非 text 元素查 boundElements 拿内部 text
+export const collectLinks = (folders: any[]): LinkEntry[] => {
+  const out: LinkEntry[] = []
   for (const folder of folders) {
     for (const file of folder.files) {
-      for (let slideIdx = 0; slideIdx < file.slides.length; slideIdx++) {
-        const slide = file.slides[slideIdx]
-        const elements = normalizeFontFamily(getVisibleElements(slide))
-
-        if (elements.length === 0) {
-          done++
-          onProgress?.(done, total, file.name)
-          continue
-        }
-
-        const canvas = await exportToCanvas(
-          elements,
-          {
-            ...(slide.appState || {}),
-            exportBackground: true,
-            viewBackgroundColor: '#fefcf7',
-            exportWithDarkMode: false,
-          } as any,
-          slide.files || {},
-          {
-            exportBackground: true,
-            exportPadding: 20,
-            viewBackgroundColor: '#fefcf7',
+      for (let si = 0; si < file.slides.length; si++) {
+        const els: any[] = file.slides[si].elements || []
+        for (const el of els) {
+          if (el.link && typeof el.link === 'string' && el.link.startsWith('http')) {
+            let text = ''
+            if (el.type === 'text') {
+              text = el.text || ''
+            } else {
+              // 图形元素：查 boundElements 里绑定的 text
+              const boundTexts = (el.boundElements || [])
+                .filter((b: any) => b.type === 'text')
+                .map((b: any) => els.find(e => e.id === b.id))
+                .filter(Boolean)
+              text = boundTexts.map((t: any) => t.text || '').join(' / ')
+            }
+            out.push({
+              folder: folder.name,
+              file: file.name,
+              slide: si + 1,
+              text,
+              link: el.link,
+            })
           }
-        )
-
-        const imgData = canvas.toDataURL('image/png')
-        const w = canvas.width
-        const h = canvas.height
-
-        if (firstPage) {
-          doc.addImage(imgData, 'PNG', 0, 0, w, h)
-          firstPage = false
-        } else {
-          doc.addPage([w, h])
-          doc.addImage(imgData, 'PNG', 0, 0, w, h)
         }
-        pageNum++
-
-        // 三层书签目录：文件夹 → 文件 → 第N页
-        if (!folderOutlines.has(folder.id)) {
-          const fo = doc.outline.add(null, folder.name, { pageNumber: pageNum })
-          folderOutlines.set(folder.id, fo)
-        }
-        const fileKey = `${folder.id}-${file.id}`
-        if (!fileOutlines.has(fileKey)) {
-          const fo = doc.outline.add(folderOutlines.get(folder.id), file.name, { pageNumber: pageNum })
-          fileOutlines.set(fileKey, fo)
-        }
-        doc.outline.add(fileOutlines.get(fileKey), `第 ${slideIdx + 1} 页`, { pageNumber: pageNum })
-
-        done++
-        onProgress?.(done, total, file.name)
       }
     }
   }
-
-  if (total === 0 || done === 0) {
-    throw new Error('没有可导出的幻灯片')
-  }
-
-  doc.save(`kity-tour-tutorial-${Date.now()}.pdf`)
+  return out
 }
+
+// 绘制链接汇总页（canvas 渲染中文不乱码）
+export const drawLinksCanvas = (links: LinkEntry[]): HTMLCanvasElement => {
+  const W = 1280
+  const padTop = 80
+  const rowH = Math.max(48, Math.min(72, (720 - padTop - 40) / Math.max(1, links.length)))
+  const H = Math.max(720, padTop + links.length * rowH + 40)
+  const c = document.createElement('canvas')
+  c.width = W
+  c.height = H
+  const ctx = c.getContext('2d')!
+  ctx.fillStyle = '#fefcf7'
+  ctx.fillRect(0, 0, W, H)
+  const fontCn = '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif'
+  // 标题
+  ctx.fillStyle = '#1e1e1e'
+  ctx.font = `bold 32px ${fontCn}`
+  ctx.fillText('教程内链接汇总', 40, 50)
+  ctx.font = `16px ${fontCn}`
+  ctx.fillStyle = '#888'
+  ctx.fillText(`共 ${links.length} 个链接，按出现顺序列出`, 40, 76)
+  // 列表
+  links.forEach((l, i) => {
+    const y = padTop + i * rowH
+    // 来源
+    ctx.fillStyle = '#888'
+    ctx.font = `13px ${fontCn}`
+    ctx.fillText(`[${l.folder} / ${l.file} / 第${l.slide}页]`, 40, y + 18)
+    // text 描述（link 绑定的文字，图形元素取 boundElements 内的 text）
+    ctx.fillStyle = '#1e1e1e'
+    ctx.font = `16px ${fontCn}`
+    const desc = (l.text || '(无文字)').replace(/\n/g, ' ').substring(0, 80)
+    ctx.fillText(desc, 40, y + 40)
+    // URL
+    ctx.fillStyle = '#0066cc'
+    ctx.font = `15px ${fontCn}`
+    ctx.fillText(l.link, 40, y + 62)
+  })
+  return c
+}
+
+export const wait = (ms: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, ms))

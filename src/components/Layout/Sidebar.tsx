@@ -3,7 +3,7 @@ import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { exportTutorialPdf } from '../../lib/exportPdf'
+import { PdfBuilder, findExcalidrawCanvas, canvasToJpeg, collectLinks, drawLinksCanvas, wait } from '../../lib/exportPdf'
 import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X, Sparkle } from '@phosphor-icons/react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
@@ -34,11 +34,14 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuClose }) => {
   const {
     folders,
+    activeFolderId,
     activeFileId,
+    currentSlideIndex,
     expandedFolders,
     isAdmin,
     setActiveFolderId,
     setActiveFileId,
+    setCurrentSlideIndex,
     toggleFolder,
     addFolder,
     renameFolder,
@@ -68,6 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
   const [searchQuery, setSearchQuery] = useState('')
   const [isExporting, setIsExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null)
+  const [pdfHintOpen, setPdfHintOpen] = useState(false)
 
   const searchTrim = searchQuery.trim()
   const filteredFolders = useMemo(
@@ -75,30 +79,87 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
     [folders, searchQuery]
   )
 
-  // 导出 PDF 并自动跳转豆包解读
+  // 导出 PDF：逐张切页 + 截 Excalidraw DOM canvas，保证不空白
   const handleExportToDoubao = async () => {
     if (isExporting) return
     setIsExporting(true)
     setExportProgress({ done: 0, total: 0 })
-    setToast({ message: '正在导出 PDF...', type: 'success' })
+    setToast({ message: '正在导出 PDF，请勿切换页面...', type: 'success' })
+    
+    // 暂存当前状态，导出后恢复
+    const origFolder = activeFolderId
+    const origFile = activeFileId
+    const origSlide = currentSlideIndex
+    
+    const total = folders.reduce(
+      (n, f) => n + f.files.reduce((m, file) => m + file.slides.length, 0),
+      0
+    )
+    let done = 0
+    const builder = new PdfBuilder()
+    
     try {
-      await exportTutorialPdf(folders, (done, total) => {
-        setExportProgress({ done, total })
-      })
-      // 自动新开豆包页（浏览器无法自动上传，用户拖拽 PDF 到对话框即可）
-      window.open('https://www.doubao.com/chat/', '_blank', 'noopener,noreferrer')
-      setToast({
-        message: 'PDF 已下载并打开豆包，把 PDF 文件拖到豆包对话框发送即可解读',
-        type: 'success'
-      })
+      for (const folder of folders) {
+        for (const file of folder.files) {
+          for (let slideIdx = 0; slideIdx < file.slides.length; slideIdx++) {
+            setActiveFolderId(folder.id)
+            setActiveFileId(file.id)
+            setCurrentSlideIndex(slideIdx)
+            // 等 Excalidraw 重 mount + 渲完
+            await wait(500)
+            const canvas = findExcalidrawCanvas()
+            if (!canvas) {
+              done++
+              setExportProgress({ done, total })
+              continue
+            }
+            const { imgData, w, h } = canvasToJpeg(canvas)
+            builder.addPage(
+              imgData,
+              w,
+              h,
+              folder.id,
+              folder.name,
+              file.id,
+              file.name,
+              slideIdx + 1
+            )
+            done++
+            setExportProgress({ done, total })
+          }
+        }
+      }
+      setToast(null)
+      if (builder.pageCount === 0) {
+        setToast({ message: '没有可导出的幻灯片', type: 'error' })
+      } else {
+        // 末尾附链接汇总页，让豆包能读到所有链接
+        const links = collectLinks(folders)
+        if (links.length > 0) {
+          const linksCanvas = drawLinksCanvas(links)
+          const { imgData: lImg, w: lW, h: lH } = canvasToJpeg(linksCanvas)
+          builder.addPage(lImg, lW, lH, 'links', '链接汇总', 'links', '链接汇总', 1)
+        }
+        builder.save(`kity-tour-tutorial-${Date.now()}.pdf`)
+        setPdfHintOpen(true)
+      }
     } catch (err: unknown) {
       setToast({
         message: `导出失败：${err instanceof Error ? err.message : String(err)}`,
-        type: 'error' })
+        type: 'error'
+      })
     } finally {
+      // 恢复原状态
+      setActiveFolderId(origFolder)
+      setActiveFileId(origFile)
+      setCurrentSlideIndex(origSlide)
       setIsExporting(false)
       setExportProgress(null)
     }
+  }
+
+  const openDoubao = () => {
+    window.open('https://www.doubao.com/chat/', '_blank', 'noopener,noreferrer')
   }
 
   const handleLogoClick = () => {
@@ -185,6 +246,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
           role="presentation"
         />
         <span className="sidebar-brand-title">PlotKityCat</span>
+      </div>
+
+      {/* 豆包解读入口：品牌下方最显眼位置 */}
+      <div className="sidebar-doubao-hint">
+        <button
+          type="button"
+          onClick={handleExportToDoubao}
+          disabled={isExporting}
+          className="sidebar-doubao-btn"
+        >
+          <Sparkle size={18} weight="fill" />
+          <span className="sidebar-doubao-text">
+            {isExporting && exportProgress
+              ? `导出中 ${exportProgress.done}/${exportProgress.total}...`
+              : '不想看教程？发给豆包解读'}
+          </span>
+        </button>
       </div>
 
       <div className="sidebar-header">
@@ -363,22 +441,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
         )}
       </div>
 
-      {/* 底部豆包提示：导出 PDF 后自动跳转豆包解读 */}
-      <div className="sidebar-doubao-hint">
-        <button
-          type="button"
-          onClick={handleExportToDoubao}
-          disabled={isExporting}
-          className="sidebar-doubao-btn"
-        >
-          <Sparkle size={18} weight="fill" />
-          <span className="sidebar-doubao-text">
-            {isExporting && exportProgress
-              ? `导出中 ${exportProgress.done}/${exportProgress.total}...`
-              : '不想看教程？发给豆包解读'}
-          </span>
-        </button>
-      </div>
+      {/* PDF 导出后提示用户手动发给豆包的模态弹窗 */}
+      {pdfHintOpen && (
+        <div className="pdf-hint-modal-overlay" onClick={() => setPdfHintOpen(false)}>
+          <div className="pdf-hint-modal" onClick={e => e.stopPropagation()}>
+            <div className="pdf-hint-icon">
+              <Sparkle size={36} weight="fill" />
+            </div>
+            <h3 className="pdf-hint-title">PDF 已下载完成</h3>
+            <p className="pdf-hint-desc">
+              请把下载的 PDF 发给豆包，让 AI 帮你解读教程内容。
+            </p>
+            <div className="pdf-hint-steps">
+              <div className="pdf-hint-step"><span className="pdf-hint-step-num">1</span>点击下方「打开豆包」按钮</div>
+              <div className="pdf-hint-step"><span className="pdf-hint-step-num">2</span>在豆包对话框里拖入刚下载的 PDF</div>
+              <div className="pdf-hint-step"><span className="pdf-hint-step-num">3</span>问 AI “这个教程的操作流程是什么”</div>
+            </div>
+            <div className="pdf-hint-actions">
+              <button className="pdf-hint-btn-secondary" onClick={() => setPdfHintOpen(false)}>
+                关闭
+              </button>
+              <button className="pdf-hint-btn-primary" onClick={openDoubao}>
+                打开豆包
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 防误删二次确认弹窗 */}
       <SafeDeleteModal 
