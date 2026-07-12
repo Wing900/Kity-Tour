@@ -21,11 +21,15 @@ const getVisibleSlideElements = (slide: Slide | undefined) =>
     !element.isDeleted && !isLegacyPreviewElement(element)
   )
 
-// 画布字体易读写化：Virgil手写(1) → Helvetica无衰线(2)，代码字体(3)保留
+// 画布字体易读写化：手写体/装饰体 → Nunito 无衰线圆体(5)，保留 Helvetica(2)/Cascadia代码(3)/Nunito(5)
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const READABLE_FONT = 5
+const KEEP_FONTS = new Set([2, 3, 5])
 const normalizeFontFamily = (elements: any[]) =>
   elements.map((el: any) =>
-    el.type === 'text' && el.fontFamily === 1 ? { ...el, fontFamily: 2 } : el
+    el.type === 'text' && !KEEP_FONTS.has(el.fontFamily) ? { ...el, fontFamily: READABLE_FONT } : el
   )
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const computePreviewFitAppState = (
   elements: any[],
@@ -73,7 +77,7 @@ const buildAppState = (
     viewModeEnabled: !isAdmin,
     currentItemStrokeWidth: 1,
     currentItemRoughness: 0,
-    currentItemFontFamily: 2  // 新建文本默认 Helvetica无衰线，易读写
+    currentItemFontFamily: 5  // 新建文本默认 Nunito 无衰线圆体，易读写不卡通
   }
 }
 

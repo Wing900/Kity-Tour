@@ -3,7 +3,8 @@ import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X } from '@phosphor-icons/react'
+import { exportTutorialPdf } from '../../lib/exportPdf'
+import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X, Sparkle } from '@phosphor-icons/react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
 
@@ -65,12 +66,40 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState<{ done: number; total: number } | null>(null)
 
   const searchTrim = searchQuery.trim()
   const filteredFolders = useMemo(
     () => filterFoldersByQuery(folders, searchQuery),
     [folders, searchQuery]
   )
+
+  // 导出 PDF 并自动跳转豆包解读
+  const handleExportToDoubao = async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    setExportProgress({ done: 0, total: 0 })
+    setToast({ message: '正在导出 PDF...', type: 'success' })
+    try {
+      await exportTutorialPdf(folders, (done, total) => {
+        setExportProgress({ done, total })
+      })
+      // 自动新开豆包页（浏览器无法自动上传，用户拖拽 PDF 到对话框即可）
+      window.open('https://www.doubao.com/chat/', '_blank', 'noopener,noreferrer')
+      setToast({
+        message: 'PDF 已下载并打开豆包，把 PDF 文件拖到豆包对话框发送即可解读',
+        type: 'success'
+      })
+    } catch (err: unknown) {
+      setToast({
+        message: `导出失败：${err instanceof Error ? err.message : String(err)}`,
+        type: 'error' })
+    } finally {
+      setIsExporting(false)
+      setExportProgress(null)
+    }
+  }
 
   const handleLogoClick = () => {
     if (isAdmin) return
@@ -332,6 +361,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
             )
           })
         )}
+      </div>
+
+      {/* 底部豆包提示：导出 PDF 后自动跳转豆包解读 */}
+      <div className="sidebar-doubao-hint">
+        <button
+          type="button"
+          onClick={handleExportToDoubao}
+          disabled={isExporting}
+          className="sidebar-doubao-btn"
+        >
+          <Sparkle size={18} weight="fill" />
+          <span className="sidebar-doubao-text">
+            {isExporting && exportProgress
+              ? `导出中 ${exportProgress.done}/${exportProgress.total}...`
+              : '不想看教程？发给豆包解读'}
+          </span>
+        </button>
       </div>
 
       {/* 防误删二次确认弹窗 */}

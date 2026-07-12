@@ -239,6 +239,56 @@ body {
   gap: 0;
 }
 
+/* ---- Sidebar 底部豆包提示 ---- */
+.sidebar-doubao-hint {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--divider-faint);
+  background-color: var(--cream-sidebar);
+}
+
+.sidebar-doubao-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--sage-deep);
+  background-color: color-mix(in srgb, var(--sage) 14%, var(--cream));
+  border: 1px solid color-mix(in srgb, var(--sage) 30%, transparent);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition:
+    background-color var(--dur-quick) var(--ease-soft),
+    transform var(--dur-quick) var(--ease-spring),
+    box-shadow var(--dur-quick) var(--ease-soft);
+}
+
+.sidebar-doubao-btn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--sage) 22%, var(--cream));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+.sidebar-doubao-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.sidebar-doubao-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.sidebar-doubao-text {
+  flex: 1;
+  text-align: left;
+}
+
 /* ---- Folder Tree ---- */
 
 .folder-card {

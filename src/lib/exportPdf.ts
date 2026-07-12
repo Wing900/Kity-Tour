@@ -10,10 +10,12 @@ const LEGACY_PREVIEW_CENTER_ID = '__preview-fit-debug-center__'
 const isLegacyPreviewElement = (el: any) =>
   el.id === LEGACY_PREVIEW_FRAME_ID || el.id === LEGACY_PREVIEW_CENTER_ID
 
-// 画布字体易读写化（与 SlideCanvas 保持一致）：Virgil(1) → Helvetica(2)
+// 画布字体易读写化（与 SlideCanvas 保持一致）：手写/装饰体 → Nunito(5)
+const READABLE_FONT = 5
+const KEEP_FONTS = new Set([2, 3, 5])
 const normalizeFontFamily = (elements: any[]) =>
   elements.map((el: any) =>
-    el.type === 'text' && el.fontFamily === 1 ? { ...el, fontFamily: 2 } : el
+    el.type === 'text' && !KEEP_FONTS.has(el.fontFamily) ? { ...el, fontFamily: READABLE_FONT } : el
   )
 
 const getVisibleElements = (slide: Slide) =>
