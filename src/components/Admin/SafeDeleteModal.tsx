@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '../UI/Card'
 import { Button } from '../UI/Button'
-import { AlertTriangle } from 'lucide-react'
+import { Warning } from '@phosphor-icons/react'
 
 interface SafeDeleteModalProps {
   isOpen: boolean
@@ -40,7 +40,7 @@ export const SafeDeleteModal: React.FC<SafeDeleteModalProps> = ({
       <Card variant="default" shadowSize="sm" className="w-full max-w-[400px] p-6 m-4 animate-slide-in">
         <div className="modal-form">
           <div className="modal-header danger">
-            <AlertTriangle className="w-4 h-4" strokeWidth={1.5} />
+            <Warning size={16} />
             <h3 className="modal-header-title">确认删除</h3>
           </div>
 

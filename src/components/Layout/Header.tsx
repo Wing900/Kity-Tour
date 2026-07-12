@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import { useTour } from '../../context/TourContext'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { Shield, LogOut, Download, Upload } from 'lucide-react'
+import { Shield, SignOut, Download, Upload } from '@phosphor-icons/react'
 
 /** 编辑模式工具条（Logo 在侧栏进入） */
 export const Header: React.FC = () => {
@@ -70,7 +70,7 @@ export const Header: React.FC = () => {
             title="导出备份 JSON"
             className="flex items-center gap-1.5"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download size={14} />
             <span>导出备份</span>
           </Button>
 
@@ -81,12 +81,12 @@ export const Header: React.FC = () => {
             title="导入备份 JSON"
             className="flex items-center gap-1.5"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload size={14} />
             <span>导入备份</span>
           </Button>
 
           <Button variant="danger" size="sm" onClick={logoutAdmin} className="flex items-center gap-1.5">
-            <LogOut className="w-3.5 h-3.5" />
+            <SignOut size={14} />
             <span>退出</span>
           </Button>
         </div>

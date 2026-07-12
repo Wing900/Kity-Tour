@@ -4,16 +4,18 @@ import { SlideCanvas } from '../Canvas/SlideCanvas'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  Trash2, 
-  Copy, 
-  ArrowLeft, 
+import { exportTutorialPdf } from '../../lib/exportPdf'
+import {
+  CaretLeft,
+  CaretRight,
+  Plus,
+  Trash,
+  Copy,
+  ArrowLeft,
   ArrowRight,
-  Link2
-} from 'lucide-react'
+  LinkSimple,
+  FilePdf
+} from '@phosphor-icons/react'
 
 export const Main: React.FC = () => {
   const {
@@ -30,6 +32,10 @@ export const Main: React.FC = () => {
   } = useTour()
 
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  // 导出 PDF 状态
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState<{ done: number; total: number; current: string } | null>(null)
   
   // 删除页面确认弹窗状态
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -92,6 +98,23 @@ export const Main: React.FC = () => {
 
   const handleNext = () => {
     goToSlide(currentSlideIndex + 1)
+  }
+
+  const handleExportPdf = async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    setExportProgress({ done: 0, total: 0, current: '' })
+    try {
+      await exportTutorialPdf(folders, (done, total, current) => {
+        setExportProgress({ done, total, current })
+      })
+      setToastMessage('教程 PDF 已导出！')
+    } catch (err: unknown) {
+      setToastMessage(`导出失败：${err instanceof Error ? err.message : String(err)}`)
+    } finally {
+      setIsExporting(false)
+      setExportProgress(null)
+    }
   }
 
   // 全局键盘监听（← / → / 空格翻页）
@@ -171,7 +194,7 @@ export const Main: React.FC = () => {
                 title="上一页 (←)"
                 className="pager-btn"
               >
-                <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
+                <CaretLeft size={20} />
               </Button>
 
               {isAdmin && totalSlides > 1 ? (
@@ -204,9 +227,22 @@ export const Main: React.FC = () => {
                 title={isAdmin ? '下一页 (→)' : '下一页 (→ / 空格)'}
                 className="pager-btn"
               >
-                <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
+                <CaretRight size={20} />
               </Button>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+              title="把所有幻灯片导出为一个 PDF 文件（每页一张）"
+              className="export-pdf-btn"
+            >
+              <FilePdf size={16} />
+              <span>{isExporting && exportProgress
+                ? `导出中 ${exportProgress.done}/${exportProgress.total}`
+                : '导出教程 PDF'}</span>
+            </Button>
           </div>
         )}
       </div>
@@ -215,7 +251,7 @@ export const Main: React.FC = () => {
         <div className="admin-footer">
             <div className="admin-toolbar-wrap">
             <p className="canvas-link-hint">
-              <Link2 className="canvas-link-hint-icon" strokeWidth={1.5} aria-hidden />
+              <LinkSimple className="canvas-link-hint-icon" aria-hidden />
               添加可点击链接：选中图形或文字后按 <kbd>Ctrl</kbd>+<kbd>K</kbd>（Mac：<kbd>⌘</kbd>+<kbd>K</kbd>）填写网址；读者点击图形上的链接角标即可打开
             </p>
             <div className="admin-toolbar">
@@ -225,7 +261,7 @@ export const Main: React.FC = () => {
                 onClick={handleAddPage}
                 className="flex items-center gap-1.5"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus size={14} />
                 <span>新建一页</span>
               </Button>
 
@@ -235,7 +271,7 @@ export const Main: React.FC = () => {
                 onClick={handleDuplicatePage}
                 className="flex items-center gap-1.5"
               >
-                <Copy className="w-3.5 h-3.5" />
+                <Copy size={14} />
                 <span>复制本页</span>
               </Button>
 
@@ -247,7 +283,7 @@ export const Main: React.FC = () => {
                 className="flex items-center gap-1.5"
                 title="将本页向左移动"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft size={14} />
                 <span>向左移</span>
               </Button>
 
@@ -259,7 +295,7 @@ export const Main: React.FC = () => {
                 className="flex items-center gap-1.5"
                 title="将本页向右移动"
               >
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight size={14} />
                 <span>向右移</span>
               </Button>
 
@@ -270,7 +306,7 @@ export const Main: React.FC = () => {
                 disabled={totalSlides <= 1}
                 className="admin-toolbar-right flex items-center gap-1.5"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash size={14} />
                 <span>删除本页</span>
               </Button>
             </div>

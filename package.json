@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.1",
-    "lucide-react": "^1.16.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "jspdf": "^4.2.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

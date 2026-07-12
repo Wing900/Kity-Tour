@@ -3,7 +3,7 @@ import { useTour, type Folder, type FileItem } from '../../context/TourContext'
 import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
-import { Plus, Edit3, Trash2, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X } from '@phosphor-icons/react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
 
@@ -175,11 +175,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
             title="新增文件夹"
             className="p-1 flex-shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus size={16} />
           </Button>
         )}
         <button className="sidebar-close-btn-mobile" onClick={onMobileMenuClose} aria-label="关闭菜单">
-          <X className="w-4 h-4" />
+          <X size={16} />
         </button>
       </div>
 
@@ -206,8 +206,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                   className="folder-header"
                 >
                   <div className="folder-title-area">
-                    <span className="folder-expander" aria-hidden>
-                      {showChildren ? '▼' : '▶'}
+                    <span className={`folder-expander ${showChildren ? 'is-expanded' : ''}`} aria-hidden>
+                      <CaretDown size={12} />
                     </span>
                     <span className="folder-name">{folder.name}</span>
                   </div>
@@ -221,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                         className="icon-action-btn"
                         title="上移"
                       >
-                        <ChevronUp className="w-3.5 h-3.5" />
+                        <CaretUp size={14} />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); moveFolder(folder.id, 'down') }}
@@ -229,28 +229,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                         className="icon-action-btn"
                         title="下移"
                       >
-                        <ChevronDown className="w-3.5 h-3.5" />
+                        <CaretDown size={14} />
                       </button>
                       <button
                         onClick={(e) => handleRenameFolder(e, folder)}
                         className="icon-action-btn edit"
                         title="重命名"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
+                        <PencilSimple size={14} />
                       </button>
                       <button
                         onClick={(e) => handleDeleteFolder(e, folder)}
                         className="icon-action-btn delete"
                         title="删除文件夹"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash size={14} />
                       </button>
                     </div>
                   )}
                 </div>
 
-                {showChildren && (
-                  <div className="folder-children-list">
+                <div className={`folder-children ${showChildren ? 'is-expanded' : 'is-collapsed'}`}>
+                  <div className="folder-children-inner">
                     {visibleFiles.length === 0 ? (
                       <div className="sidebar-empty-hint compact">
                         <span>此文件夹下暂无内容</span>
@@ -282,7 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                                   className="icon-action-btn"
                                   title="上移"
                                 >
-                                  <ChevronUp className="w-3 h-3" />
+                                  <CaretUp size={12} />
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); moveFile(folder.id, file.id, 'down') }}
@@ -290,21 +290,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                                   className="icon-action-btn"
                                   title="下移"
                                 >
-                                  <ChevronDown className="w-3 h-3" />
+                                  <CaretDown size={12} />
                                 </button>
                                 <button
                                   onClick={(e) => handleRenameFile(e, folder.id, file)}
                                   className="icon-action-btn edit"
                                   title="重命名"
                                 >
-                                  <Edit3 className="w-3 h-3" />
+                                  <PencilSimple size={12} />
                                 </button>
                                 <button
                                   onClick={(e) => handleDeleteFile(e, folder.id, file)}
                                   className="icon-action-btn delete"
                                   title="删除文件"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash size={12} />
                                 </button>
                               </div>
                             )}
@@ -322,12 +322,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                         }}
                         className="sidebar-add-file-btn"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus size={12} />
                         <span>新建教程文件</span>
                       </div>
                     )}
                   </div>
-                )}
+                </div>
               </div>
             )
           })

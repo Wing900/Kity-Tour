@@ -1,10 +1,11 @@
 :root {
   /*
    * 双区平涂：仅侧栏色 + 画布色 + 极淡分界，其余用 hover/选中微变
+   * 暖白底 #fefcf7（白里极淡暖，比纯白柔）
    */
-  --cream: #fdf9f3;
-  --cream-sidebar: #f8f4ee;
-  --cream-muted: #f1ece6;
+  --cream: #fefcf7;
+  --cream-sidebar: #f7f3eb;
+  --cream-muted: #f0ebe0;
   --sage: #a0a98b;
   --sage-deep: #8f9880;
   --ink: #3a3d38;
@@ -30,9 +31,20 @@
   --border-radius-md: 10px;
   --border-radius-lg: 12px;
 
-  --shadow-soft: none;
-  --shadow-medium: none;
-  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--sage) 40%, transparent);
+  /* 苹果化动效 token —— spring 缓动 + 微抬升 + 柔边 focus ring */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-instant: 0.08s;
+  --dur-quick: 0.18s;
+  --dur-soft: 0.32s;
+  --dur-slow: 0.48s;
+
+  /* 苹果化层级阴影：原 none → 极淡玻璃层级 */
+  --shadow-soft: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
+    0 1px 1px color-mix(in srgb, var(--ink) 4%, transparent);
+  --shadow-medium: 0 4px 16px color-mix(in srgb, var(--ink) 8%, transparent),
+    0 1px 4px color-mix(in srgb, var(--ink) 6%, transparent);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--sage) 32%, transparent);
 
   /** 左右分栏 / 侧栏内分组：极淡 1px */
   --divider-faint: color-mix(in srgb, var(--ink) 2.2%, transparent);

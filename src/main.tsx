@@ -11,3 +11,16 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// 首屏 splash 淡出：等 React 首帧 + 一帧，再触发 CSS opacity 过渡
+const splash = document.getElementById('app-splash')
+if (splash) {
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      splash.classList.add('is-hidden')
+      const cleanup = () => splash.remove()
+      splash.addEventListener('transitionend', cleanup, { once: true })
+      window.setTimeout(cleanup, 1200)
+    }),
+  )
+}

@@ -3,7 +3,7 @@ import { Excalidraw, getCommonBounds } from '@excalidraw/excalidraw'
 import { useTour, type Slide } from '../../context/TourContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { openExternalLink } from '../../utils/openLink'
-import { FileQuestion } from 'lucide-react'
+import { FileX } from '@phosphor-icons/react'
 import '@excalidraw/excalidraw/index.css'
 
 const PREVIEW_PADDING = 48
@@ -19,6 +19,12 @@ const isLegacyPreviewElement = (element: any) =>
 const getVisibleSlideElements = (slide: Slide | undefined) =>
   (slide?.elements || []).filter((element: any) =>
     !element.isDeleted && !isLegacyPreviewElement(element)
+  )
+
+// 画布字体易读写化：Virgil手写(1) → Helvetica无衰线(2)，代码字体(3)保留
+const normalizeFontFamily = (elements: any[]) =>
+  elements.map((el: any) =>
+    el.type === 'text' && el.fontFamily === 1 ? { ...el, fontFamily: 2 } : el
   )
 
 const computePreviewFitAppState = (
@@ -62,11 +68,12 @@ const buildAppState = (
   return {
     ...(isAdmin ? appState : readerAppState),
     ...(!isAdmin ? computePreviewFitAppState(visibleElements, viewport) : {}),
-    viewBackgroundColor: '#fdf9f3',
+    viewBackgroundColor: '#fefcf7',
     theme: 'light' as const,
     viewModeEnabled: !isAdmin,
     currentItemStrokeWidth: 1,
-    currentItemRoughness: 0
+    currentItemRoughness: 0,
+    currentItemFontFamily: 2  // 新建文本默认 Helvetica无衰线，易读写
   }
 }
 
@@ -104,7 +111,9 @@ export const SlideCanvas: React.FC = () => {
 
   const handleChange = (elements: readonly any[], appState: any, files: Record<string, any>) => {
     if (isSyncingRef.current || !isAdmin || !activeSlideId) return
-    const validElements = elements.filter(el => !el.isDeleted && !isLegacyPreviewElement(el))
+    const validElements = normalizeFontFamily(
+      elements.filter(el => !el.isDeleted && !isLegacyPreviewElement(el))
+    )
     const currentFiles = excalidrawAPI?.getFiles?.() ?? files ?? {}
     debouncedSave(activeSlideId, validElements, appState, currentFiles)
   }
@@ -174,37 +183,97 @@ export const SlideCanvas: React.FC = () => {
   useEffect(() => {
     if (isAdmin || !excalidrawAPI || !canvasInnerRef.current) return
 
-    const handleWheel = (event: WheelEvent) => {
-      event.preventDefault()
+    // 地图镜头感缩放：指数趋近 + 锚点锁定
+    //   zoomTarget  滚轮累积改的目标值
+    //   zoomCurrent 每帧用指数曲线趋近 target（镜头滑行感）
+    //   anchor      wheel 时锁定的鼠标场景坐标，动画中保持不动
+    let zoomTarget = 0
+    let zoomCurrent = 0
+    let anchor: { clientX: number; clientY: number; sceneX: number; sceneY: number } | null = null
+    let rafId: number | null = null
+    let lastTs = 0
+
+    const TAU = 90 // 时间常数 ms：地图镜头感区间（越大越滑行）
+
+    const animate = (ts: number) => {
+      rafId = null
+      if (!zoomCurrent || !anchor || !canvasInnerRef.current) {
+        lastTs = 0
+        return
+      }
+      if (!lastTs) lastTs = ts
+      const dt = Math.min(ts - lastTs, 32) // 限 32ms 防卡顿后大跳
+      lastTs = ts
+
+      const diff = zoomTarget - zoomCurrent
+      const alpha = 1 - Math.exp(-dt / TAU) // 指数衰减曲线
+      zoomCurrent += diff * alpha
+
       const appState = excalidrawAPI.getAppState?.()
-      if (!appState?.zoom?.value) return
-
-      const rect = canvasInnerRef.current?.getBoundingClientRect()
-      if (!rect) return
-
-      const currentZoom = appState.zoom.value
-      const nextZoom = Math.min(
-        MAX_PREVIEW_ZOOM,
-        Math.max(MIN_PREVIEW_ZOOM, currentZoom * Math.pow(WHEEL_ZOOM_FACTOR, -event.deltaY))
-      )
-      const mouseSceneX = (event.clientX - rect.left) / currentZoom - appState.scrollX
-      const mouseSceneY = (event.clientY - rect.top) / currentZoom - appState.scrollY
-
+      const rect = canvasInnerRef.current.getBoundingClientRect()
+      if (!appState?.zoom?.value || !rect) {
+        lastTs = 0
+        return
+      }
       excalidrawAPI.updateScene({
         appState: {
           ...appState,
           viewModeEnabled: true,
-          zoom: { value: nextZoom },
-          scrollX: (event.clientX - rect.left) / nextZoom - mouseSceneX,
-          scrollY: (event.clientY - rect.top) / nextZoom - mouseSceneY
+          zoom: { value: zoomCurrent },
+          scrollX: (anchor.clientX - rect.left) / zoomCurrent - anchor.sceneX,
+          scrollY: (anchor.clientY - rect.top) / zoomCurrent - anchor.sceneY
         }
       })
+
+      // 收敛判定：达到目标或差异足够小则停
+      if (Math.abs(zoomTarget - zoomCurrent) < 0.0005) {
+        zoomCurrent = zoomTarget
+        lastTs = 0
+        return
+      }
+      rafId = requestAnimationFrame(animate)
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      const appState = excalidrawAPI.getAppState?.()
+      if (!appState?.zoom?.value || !canvasInnerRef.current) return
+      const rect = canvasInnerRef.current.getBoundingClientRect()
+      if (!rect) return
+
+      // 首帧或长时间空转后，同步 current = 实际 zoom
+      if (!zoomCurrent) zoomCurrent = appState.zoom.value
+      if (!zoomTarget) zoomTarget = appState.zoom.value
+
+      // 限幅 deltaY：滚轮大步压成 trackpad 量级
+      const clamped = Math.sign(event.deltaY) * Math.min(Math.abs(event.deltaY), 24)
+      zoomTarget = Math.min(
+        MAX_PREVIEW_ZOOM,
+        Math.max(MIN_PREVIEW_ZOOM, zoomTarget * Math.pow(WHEEL_ZOOM_FACTOR, -clamped))
+      )
+
+      // 锚点基于当前 current zoom 锁定，鼠标下场景元素不动
+      anchor = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        sceneX: (event.clientX - rect.left) / zoomCurrent - appState.scrollX,
+        sceneY: (event.clientY - rect.top) / zoomCurrent - appState.scrollY
+      }
+
+      if (rafId === null) {
+        lastTs = 0
+        rafId = requestAnimationFrame(animate)
+      }
     }
 
     const target = canvasInnerRef.current
     target.addEventListener('wheel', handleWheel, { passive: false })
     return () => {
       target.removeEventListener('wheel', handleWheel)
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
     }
   }, [excalidrawAPI, isAdmin])
 
@@ -242,7 +311,7 @@ export const SlideCanvas: React.FC = () => {
   if (!activeFile || !activeSlide) {
     return (
       <div className="canvas-empty-state">
-        <FileQuestion className="empty-state-icon" />
+        <FileX className="empty-state-icon" />
         <h3 className="empty-state-title">这里还没有内容</h3>
         <p className="empty-state-desc">
           {isAdmin
@@ -253,7 +322,7 @@ export const SlideCanvas: React.FC = () => {
     )
   }
 
-  const visibleElements = getVisibleSlideElements(activeSlide)
+  const visibleElements = normalizeFontFamily(getVisibleSlideElements(activeSlide))
   const shouldWaitForPreviewCanvas =
     !isAdmin && visibleElements.length > 0 && (!viewport || isActiveSlideHydrating)
 
