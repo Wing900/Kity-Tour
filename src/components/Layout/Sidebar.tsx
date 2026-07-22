@@ -4,7 +4,7 @@ import { SafeDeleteModal } from '../Admin/SafeDeleteModal'
 import { Button } from '../UI/Button'
 import { Toast } from '../UI/Toast'
 import { PdfBuilder, canvasToJpeg, collectLinks, drawLinksCanvas, waitForNewCanvas } from '../../lib/exportPdf'
-import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X, Sparkle } from '@phosphor-icons/react'
+import { Plus, PencilSimple, Trash, CaretUp, CaretDown, X, Sparkle, Lock, LockOpen } from '@phosphor-icons/react'
 
 type FilteredFolder = { folder: Folder; files: FileItem[] }
 
@@ -51,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
     renameFile,
     deleteFile,
     moveFile,
+    toggleFileLock,
     loginAdmin
   } = useTour()
 
@@ -191,6 +192,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
   // 删除文件夹确认
   const handleDeleteFolder = (e: React.MouseEvent, folder: Folder) => {
     e.stopPropagation()
+    if (folder.files.some(f => f.locked)) {
+      setToast({ message: '该文件夹含永久锁定文件，无法删除。请先解锁。', type: 'error' })
+      return
+    }
     setDeleteModal({
       isOpen: true,
       itemName: folder.name,
@@ -225,6 +230,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
   // 删除文件确认
   const handleDeleteFile = (e: React.MouseEvent, folderId: string, file: FileItem) => {
     e.stopPropagation()
+    if (file.locked) {
+      setToast({ message: '此文件已锁定为永久页，不可删除。请先解锁。', type: 'error' })
+      return
+    }
     setDeleteModal({
       isOpen: true,
       itemName: file.name,
@@ -233,6 +242,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
         deleteFile(folderId, file.id)
         setToast({ message: '文件已成功删除！', type: 'success' })
       }
+    })
+  }
+
+  // 切换文件锁定
+  const handleToggleFileLock = (e: React.MouseEvent, folderId: string, file: FileItem) => {
+    e.stopPropagation()
+    toggleFileLock(folderId, file.id)
+    setToast({
+      message: file.locked ? '已解锁，该文件可被删除。' : '已锁定为永久页，不可删除，深链永久有效。',
+      type: 'success'
     })
   }
 
@@ -379,11 +398,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, onMobileMenuCl
                           >
                             <div className="file-title-area">
                               <span className="file-name-text">{file.name}</span>
+                              {file.locked && (
+                                <Lock size={12} weight="fill" className="file-lock-badge" aria-label="永久锁定" />
+                              )}
                             </div>
 
                             {/* 管理员对教程文件的操作 */}
                             {isAdmin && (
                               <div className="item-actions-group">
+                                <button
+                                  onClick={(e) => handleToggleFileLock(e, folder.id, file)}
+                                  className={`icon-action-btn lock${file.locked ? ' locked' : ''}`}
+                                  title={file.locked ? '解锁（允许删除）' : '锁定为永久页（禁止删除）'}
+                                >
+                                  {file.locked ? <Lock size={12} weight="fill" /> : <LockOpen size={12} />}
+                                </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); moveFile(folder.id, file.id, 'up') }}
                                   disabled={fileIdxFull === 0}

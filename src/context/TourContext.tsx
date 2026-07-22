@@ -13,6 +13,7 @@ export interface FileItem {
   id: string
   name: string
   slides: Slide[]
+  locked?: boolean
 }
 
 export interface Folder {
@@ -51,6 +52,7 @@ interface TourContextType {
   renameFile: (folderId: string, fileId: string, name: string) => void
   deleteFile: (folderId: string, fileId: string) => void
   moveFile: (folderId: string, fileId: string, direction: 'up' | 'down') => void
+  toggleFileLock: (folderId: string, fileId: string) => void
   
   // 幻灯片管理
   addSlide: () => void
@@ -333,6 +335,9 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const deleteFolder = (folderId: string) => {
+    // 含锁定文件的文件夹禁止删除，避免误删导致深链断裂
+    const folder = folders.find(f => f.id === folderId)
+    if (folder?.files.some(file => file.locked)) return
     const updated = folders.filter(f => f.id !== folderId)
     saveState(updated)
     if (activeFolderId === folderId) {
@@ -392,6 +397,10 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const deleteFile = (folderId: string, fileId: string) => {
+    // 锁定文件禁止删除，保护深链永久有效
+    const folder = folders.find(f => f.id === folderId)
+    const file = folder?.files.find(f => f.id === fileId)
+    if (file?.locked) return
     const updated = folders.map(f => {
       if (f.id === folderId) {
         return {
@@ -406,6 +415,19 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveFileId(null)
       setCurrentSlideIndex(0)
     }
+  }
+
+  const toggleFileLock = (folderId: string, fileId: string) => {
+    const updated = folders.map(f => {
+      if (f.id !== folderId) return f
+      return {
+        ...f,
+        files: f.files.map(file =>
+          file.id === fileId ? { ...file, locked: !file.locked } : file
+        )
+      }
+    })
+    saveState(updated)
   }
 
   const moveFile = (folderId: string, fileId: string, direction: 'up' | 'down') => {
@@ -660,6 +682,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       renameFile,
       deleteFile,
       moveFile,
+      toggleFileLock,
       addSlide,
       deleteSlide,
       duplicateSlide,

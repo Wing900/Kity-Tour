@@ -587,6 +587,19 @@ body {
   transform: scale(1.08);
 }
 
+.icon-action-btn.lock:hover:not(:disabled) {
+  color: #b58608;
+}
+
+.icon-action-btn.lock.locked {
+  color: #b58608;
+}
+
+.file-lock-badge {
+  color: #b58608;
+  flex-shrink: 0;
+}
+
 .icon-action-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
