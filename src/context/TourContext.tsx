@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { hydrateSceneFiles } from '../lib/sceneFiles'
 import { isSceneFileAssetRef } from '../lib/sceneFilePaths'
 
@@ -135,6 +135,7 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [expandedFolders, setExpandedFolders] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [hydratingSlideId, setHydratingSlideId] = useState<string | null>(null)
+  const deepLinkResolvedRef = useRef<boolean>(false)
 
   // 1. 初始化时从静态 JSON 获取数据，兼容子路径部署
   useEffect(() => {
@@ -173,6 +174,43 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     setCurrentSlideIndex(0)
   }, [activeFileId])
+
+  // 2.5 深链直达：folders 加载完成后，解析 URL 参数定位到指定页；id 失效则默默落默认首页
+  useEffect(() => {
+    if (isLoading || deepLinkResolvedRef.current) return
+    deepLinkResolvedRef.current = true
+
+    const params = new URLSearchParams(window.location.search)
+    const folderId = params.get('f')
+    const fileId = params.get('file')
+    const page = params.get('p')
+    if (!folderId || !fileId) return
+
+    const folder = folders.find(f => f.id === folderId)
+    const file = folder?.files.find(f => f.id === fileId)
+    if (!folder || !file) return // 失命中：保留 loadInitialData 设的默认首页
+
+    setActiveFolderId(folder.id)
+    setExpandedFolders(prev => prev.includes(folder.id) ? prev : [folder.id])
+    setActiveFileId(file.id)
+    const parsed = Number(page)
+    const safeIndex = Number.isFinite(parsed) && parsed > 0
+      ? Math.min(Math.floor(parsed), file.slides.length - 1)
+      : 0
+    setCurrentSlideIndex(safeIndex)
+  }, [isLoading, folders])
+
+  // 2.6 URL 回写：当前页位置变化时同步到地址栏，便于复制分享
+  useEffect(() => {
+    if (isLoading || !activeFolderId || !activeFileId) return
+    const params = new URLSearchParams()
+    params.set('f', activeFolderId)
+    params.set('file', activeFileId)
+    if (currentSlideIndex > 0) params.set('p', String(currentSlideIndex))
+    const search = params.toString()
+    const newUrl = `${window.location.pathname}?${search}${window.location.hash}`
+    window.history.replaceState({}, '', newUrl)
+  }, [activeFolderId, activeFileId, currentSlideIndex, isLoading])
 
   useEffect(() => {
     if (!activeFolderId || !activeFileId) return

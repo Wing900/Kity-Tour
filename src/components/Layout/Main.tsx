@@ -143,6 +143,29 @@ export const Main: React.FC = () => {
     setToastMessage('页面已成功复制，已跳转至新页！')
   }
 
+  // 复制本页链接
+  const handleCopyPageLink = async () => {
+    const url = window.location.href
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        // 降级：选中文本供手动复制
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      setToastMessage('本页链接已复制，可粘贴分享！')
+    } catch {
+      setToastMessage('复制失败，请手动复制地址栏网址。')
+    }
+  }
+
   // 新建页
   const handleAddPage = () => {
     addSlide()
@@ -219,14 +242,25 @@ export const Main: React.FC = () => {
               添加可点击链接：选中图形或文字后按 <kbd>Ctrl</kbd>+<kbd>K</kbd>（Mac：<kbd>⌘</kbd>+<kbd>K</kbd>）填写网址；读者点击图形上的链接角标即可打开
             </p>
             <div className="admin-toolbar">
-              <Button 
-                variant="primary" 
-                size="sm" 
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={handleAddPage}
                 className="flex items-center gap-1.5"
               >
                 <Plus size={14} />
                 <span>新建一页</span>
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyPageLink}
+                className="flex items-center gap-1.5"
+                title="复制当前页网址，分享后可直接打开本页"
+              >
+                <LinkSimple size={14} />
+                <span>复制本页链接</span>
               </Button>
 
               <Button 
