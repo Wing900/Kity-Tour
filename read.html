@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <link rel="apple-touch-icon" href="./logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PlotKityCat 教程 · 长卷阅读版" />
+    <title>PlotKityCat 教程</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* 首帧 splash：与主站同一套呼吸动效，避免白屏 */
+      #reader-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fefcf7;
+        transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      #reader-splash.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #reader-splash img {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        animation: reader-splash-breathe 1.8s ease-in-out infinite;
+      }
+      @keyframes reader-splash-breathe {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.85;
+        }
+        50% {
+          transform: scale(1.06);
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #reader-splash img {
+          animation: none;
+          opacity: 0.9;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="reader-splash" aria-hidden="true">
+      <img src="./logo.png" alt="" />
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/reader/main.tsx"></script>
+  </body>
+</html>

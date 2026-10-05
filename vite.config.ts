@@ -90,6 +90,16 @@ const savePlugin = () => ({
 export default defineConfig({
   base: './',
   plugins: [react(), savePlugin()],
+  build: {
+    rollupOptions: {
+      input: {
+        // 原站：画布阅读/编辑器，保持原样
+        main: path.resolve(__dirname, 'index.html'),
+        // 新入口：长卷阅读器
+        reader: path.resolve(__dirname, 'read.html')
+      }
+    }
+  },
   define: {
     'process.env': {}
   }
