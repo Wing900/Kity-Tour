@@ -66,14 +66,14 @@ check('整行图片 → media(image)，带 caption', () => {
 })
 
 check('整行视频 → media(video)，封面按 -cover.webp 约定', () => {
-  const blocks = parseMarkdown('![介绍视频](media/intro.mp4 "PlotKityCat 介绍")')
+  const blocks = parseMarkdown('![介绍视频](media/demo.mp4 "PlotKityCat 介绍")')
   assert.equal(blocks.length, 1)
   const v = blocks[0]
   assert.equal(v.type, 'media')
   if (v.type === 'media') {
     assert.equal(v.kind, 'video')
-    assert.equal(v.src, 'media/intro.mp4')
-    assert.equal(v.poster, 'media/intro-cover.webp')
+    assert.equal(v.src, 'media/demo.mp4')
+    assert.equal(v.poster, 'media/demo-cover.webp')
     assert.equal(v.caption, 'PlotKityCat 介绍')
   }
 })

@@ -147,7 +147,7 @@ const VIDEO_EXT = /\.(mp4|webm|mov|m4v)$/i
 /**
  * 整行媒体：`![alt](src "caption")`
  * 约定：src 为视频扩展名时渲染为播放器，封面取同名 `-cover.webp`
- * （例：`media/intro.mp4` → 封面 `media/intro-cover.webp`）。
+ * （例：`media/xxx.mp4` → 封面 `media/xxx-cover.webp`）。
  */
 const parseMediaLine = (line: string): Block | null => {
   const match = /^\s*!\[([^\]]*)\]\(([^)\n]+)\)\s*$/.exec(line)

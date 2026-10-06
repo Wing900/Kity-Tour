@@ -69,10 +69,6 @@ export const Sidebar = ({ activeSlug, onSelect, open, onClose }: SidebarProps) =
         </nav>
         <ScrollIndicator targetRef={navRef} />
       </div>
-
-      <a className="rd-sidebar-foot" href={`${import.meta.env.BASE_URL}index.html`}>
-        切换到画布版 ↗
-      </a>
     </aside>
   </>
   )

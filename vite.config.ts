@@ -93,10 +93,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        // 原站：画布阅读/编辑器，保持原样
-        main: path.resolve(__dirname, 'index.html'),
-        // 新入口：长卷阅读器
-        reader: path.resolve(__dirname, 'read.html')
+        // 旧站：画布阅读/编辑器。已从默认入口降为隐藏页 /canvas.html，
+        // 仅旧深链（?f=&file=&p=）转发与直接访问可达，站内不再提供入口链接。
+        canvas: path.resolve(__dirname, 'canvas.html'),
+        // 新入口：长卷阅读器，占据站点根路径 /
+        reader: path.resolve(__dirname, 'index.html')
       }
     }
   },

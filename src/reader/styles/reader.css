@@ -270,20 +270,6 @@ html::-webkit-scrollbar,
   flex: 1;
 }
 
-.rd-sidebar-foot {
-  display: block;
-  padding: 16px 24px;
-  border-top: 1px solid var(--rd-line);
-  font-size: 14px;
-  color: var(--rd-ink-3);
-  text-decoration: none;
-  transition: color var(--rd-dur-quick) var(--rd-ease);
-}
-
-.rd-sidebar-foot:hover {
-  color: var(--rd-sage-deep);
-}
-
 .rd-sidebar-scrim {
   display: none;
 }

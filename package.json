@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node tests/markdown.test.mts && node tests/content.test.mts"
+    "test": "node tests/markdown.test.mts && node tests/content.test.mts && node tests/routing.test.mts"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.1",
